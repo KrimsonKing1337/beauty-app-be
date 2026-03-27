@@ -1,13 +1,10 @@
 import { Router } from 'express';
 
+import { getRoot, getTest } from '../controllers/testController';
+
 const router = Router();
 
-router.get('/', (_req, res) => {
-  res.send('hello world');
-});
-
-router.get('/test', (_req, res) => {
-  res.send('hello world');
-});
+router.get('/', getRoot);
+router.get('/test', getTest);
 
 export { router };

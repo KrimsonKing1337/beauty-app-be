@@ -1,19 +1,25 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 
+import { env } from './config/env';
+import { pool } from './db';
 import { router } from './routes/test';
-
-dotenv.config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(router);
 
-const PORT = process.env.PORT || 3000;
+app.use('/', router);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(env.port, async () => {
+  console.log(`Server is running on port ${env.port}`);
+
+  try {
+    await pool.query('SELECT NOW()');
+    await pool.query('SET client_encoding TO \'UTF8\'');
+    console.log('PostgreSQL connected successfully');
+  } catch (error) {
+    console.error('PostgreSQL connection failed:', error);
+  }
 });
