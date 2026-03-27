@@ -17,7 +17,6 @@ app.listen(env.port, async () => {
 
   try {
     await pool.query('SELECT NOW()');
-    await pool.query('SET client_encoding TO \'UTF8\'');
     console.log('PostgreSQL connected successfully');
   } catch (error) {
     console.error('PostgreSQL connection failed:', error);
