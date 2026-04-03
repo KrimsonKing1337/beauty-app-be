@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 
 import { authService } from './auth.service';
+import { usersRepository } from '@/modules/users/users.repository';
 
 export const authController = {
   async login(req: Request, res: Response) {
@@ -76,9 +77,20 @@ export const authController = {
       });
     }
 
+    const user = await usersRepository.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(401).json({
+        message: 'User not found',
+      });
+    }
+
     return res.json({
-      userId: req.user.userId,
-      login: req.user.login,
+      user: {
+        id: user.id,
+        login: user.login,
+        name: user.name,
+      }
     });
   },
 };

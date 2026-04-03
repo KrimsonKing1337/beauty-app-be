@@ -62,12 +62,12 @@ export const createReminder = async (
         VALUES (
              $1,
              gen_random_uuid(),
+             $2,
              $3,
              $4,
-             $5,
+             $5::jsonb,
              $6::jsonb,
-             $7::jsonb,
-             $8
+             $7
         )
         RETURNING *
     `,
