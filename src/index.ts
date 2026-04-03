@@ -6,6 +6,7 @@ import { pool } from './db';
 
 import { proceduresRouter } from './modules/procedures/procedures.routes';
 import { remindersRouter } from './modules/reminders/reminders.routes';
+import { authRoutes } from './modules/auth/auth.routes';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/procedures', proceduresRouter);
 app.use('/api/reminders', remindersRouter);
+app.use('/api/auth', authRoutes);
 
 app.listen(env.port, async () => {
   console.log(`Server is running on port ${env.port}`);
