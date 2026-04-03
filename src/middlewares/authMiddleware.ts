@@ -1,11 +1,9 @@
-import type { Response, NextFunction } from 'express';
-
-import type { RequestWithUser } from '@/@types';
+import type { Request, Response, NextFunction } from 'express';
 
 import { verifyAccessToken } from '@/modules/auth/utils/tokens';
 
 export const authMiddleware = (
-  req: RequestWithUser,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) => {

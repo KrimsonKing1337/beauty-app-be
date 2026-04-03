@@ -1,16 +1,19 @@
 import { Router } from 'express';
 
 import {
-  getRemindersController,
+  getReminders,
   getReminderByIdController,
   createReminderController,
   updateReminderController,
   deleteReminderController,
 } from './reminders.controller';
+import { authMiddleware } from '@/middlewares/authMiddleware';
 
 export const remindersRouter = Router();
 
-remindersRouter.get('/', getRemindersController);
+remindersRouter.use(authMiddleware);
+
+remindersRouter.get('/', getReminders);
 remindersRouter.get('/:id', getReminderByIdController);
 remindersRouter.post('/', createReminderController);
 remindersRouter.put('/:id', updateReminderController);

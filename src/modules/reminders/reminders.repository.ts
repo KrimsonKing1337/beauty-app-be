@@ -9,47 +9,33 @@ import type {
   UpdateReminderInput,
 } from './reminders.types';
 
-export const getAllRemindersRepository = async (): Promise<Reminder[]> => {
-  const result = await pool.query<ReminderRow>(
+export const getAllByUserId = async (userId: string): Promise<Reminder[]> => {
+  const result = await pool.query(
     `
-        SELECT
-            id,
-            name,
-            description,
-            date_time,
-            repeat,
-            notifications,
-            is_completed,
-            created_at,
-            updated_at
-        FROM reminders
-        ORDER BY date_time ASC
+        select *
+        from reminders
+        where user_id = $1
+        order by date_time desc nulls last
     `,
+    [userId],
   );
 
   return result.rows.map(mapReminderRowToEntity);
 };
 
-export const getReminderByIdRepository = async (
-  id: string,
+export const getReminderById = async (
+  userId: string,
+  reminderId: string,
 ): Promise<Reminder | null> => {
-  const result = await pool.query<ReminderRow>(
+  const result = await pool.query(
     `
-        SELECT
-            id,
-            name,
-            description,
-            date_time,
-            repeat,
-            notifications,
-            is_completed,
-            created_at,
-            updated_at
-        FROM reminders
-        WHERE id = $1
-        LIMIT 1
+        select *
+        from reminders
+        where id = $1
+          and user_id = $2
+        limit 1
     `,
-    [id],
+    [reminderId, userId],
   );
 
   const row = result.rows[0];
@@ -57,12 +43,14 @@ export const getReminderByIdRepository = async (
   return row ? mapReminderRowToEntity(row) : null;
 };
 
-export const createReminderRepository = async (
+export const createReminder = async (
+  userId: string,
   input: CreateReminderInput,
 ): Promise<Reminder> => {
   const result = await pool.query<ReminderRow>(
     `
         INSERT INTO reminders (
+            user_id,
             id,
             name,
             description,
@@ -72,26 +60,19 @@ export const createReminderRepository = async (
             is_completed
         )
         VALUES (
-             gen_random_uuid(),
              $1,
-             $2,
+             gen_random_uuid(),
              $3,
-             $4::jsonb,
-             $5::jsonb,
-             $6
+             $4,
+             $5,
+             $6::jsonb,
+             $7::jsonb,
+             $8
         )
-        RETURNING
-            id,
-            name,
-            description,
-            date_time,
-            repeat,
-            notifications,
-            is_completed,
-            created_at,
-            updated_at
+        RETURNING *
     `,
     [
+      userId,
       input.name,
       input.description,
       input.dateTime,
@@ -104,7 +85,8 @@ export const createReminderRepository = async (
   return mapReminderRowToEntity(result.rows[0]);
 };
 
-export const updateReminderRepository = async (
+export const updateReminder = async (
+  userId: string,
   id: string,
   input: UpdateReminderInput,
 ): Promise<Reminder | null> => {
@@ -119,17 +101,8 @@ export const updateReminderRepository = async (
         notifications = $6::jsonb,
         is_completed = $7,
         updated_at = NOW()
-      WHERE id = $1
-      RETURNING
-        id,
-        name,
-        description,
-        date_time,
-        repeat,
-        notifications,
-        is_completed,
-        created_at,
-        updated_at
+      WHERE id = $1 AND user_id = $8
+      RETURNING *
     `,
     [
       id,
@@ -139,6 +112,7 @@ export const updateReminderRepository = async (
       JSON.stringify(input.repeat),
       JSON.stringify(input.notifications),
       input.isCompleted,
+      userId,
     ],
   );
 
@@ -147,15 +121,16 @@ export const updateReminderRepository = async (
   return row ? mapReminderRowToEntity(row) : null;
 };
 
-export const deleteReminderRepository = async (
+export const deleteReminder = async (
+  userId: string,
   id: string,
 ): Promise<boolean> => {
   const result = await pool.query(
     `
         DELETE FROM reminders
-        WHERE id = $1
+        WHERE id = $1 AND user_id = $2
     `,
-    [id],
+    [id, userId],
   );
 
   return (result.rowCount ?? 0) > 0;

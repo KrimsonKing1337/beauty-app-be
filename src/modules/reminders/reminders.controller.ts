@@ -15,11 +15,13 @@ import {
   deleteReminderService,
 } from './reminders.service';
 
-export const getRemindersController = async (
-  _req: Request,
+export const getReminders = async (
+  req: Request,
   res: Response,
 ): Promise<void> => {
-  const reminders = await getAllRemindersService();
+  const userId = req.user!.userId;
+
+  const reminders = await getAllRemindersService(userId);
 
   res.json(reminders);
 };
@@ -39,7 +41,9 @@ export const getReminderByIdController = async (
     return;
   }
 
-  const reminder = await getReminderByIdService(paramsResult.data.id);
+  const userId = req.user!.userId;
+
+  const reminder = await getReminderByIdService(userId, paramsResult.data.id);
 
   if (!reminder) {
     res.status(404).json({ message: 'Reminder not found' });
@@ -65,7 +69,9 @@ export const createReminderController = async (
     return;
   }
 
-  const reminder = await createReminderService(bodyResult.data);
+  const userId = req.user!.userId;
+
+  const reminder = await createReminderService(userId, bodyResult.data);
 
   res.status(201).json(reminder);
 };
@@ -96,7 +102,10 @@ export const updateReminderController = async (
     return;
   }
 
+  const userId = req.user!.userId;
+
   const updatedReminder = await updateReminderService(
+    userId,
     paramsResult.data.id,
     bodyResult.data,
   );
@@ -125,7 +134,9 @@ export const deleteReminderController = async (
     return;
   }
 
-  const isDeleted = await deleteReminderService(paramsResult.data.id);
+  const userId = req.user!.userId;
+
+  const isDeleted = await deleteReminderService(userId, paramsResult.data.id);
 
   if (!isDeleted) {
     res.status(404).json({ message: 'Reminder not found' });

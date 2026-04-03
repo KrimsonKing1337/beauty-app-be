@@ -4,23 +4,23 @@ import { ProceduresRepository } from './procedures.repository';
 export class ProceduresService {
   constructor(private readonly proceduresRepository: ProceduresRepository) {}
 
-  async getAll() {
-    return this.proceduresRepository.findAll();
+  async getAll(userId: string) {
+    return this.proceduresRepository.findAllByUserId(userId);
   }
 
-  async getById(id: string) {
-    return this.proceduresRepository.findById(id);
+  async getById(userId: string, id: string) {
+    return this.proceduresRepository.findById(userId, id);
   }
 
-  async create(payload: CreateProcedureDto) {
-    return this.proceduresRepository.create(payload);
+  async create(userId: string, payload: CreateProcedureDto) {
+    return this.proceduresRepository.create(userId, payload);
   }
 
-  async update(id: string, payload: UpdateProcedureDto) {
-    return this.proceduresRepository.update(id, payload);
+  async update(userId: string, id: string, payload: UpdateProcedureDto) {
+    return this.proceduresRepository.update(userId, id, payload);
   }
 
-  async delete(id: string) {
-    return this.proceduresRepository.delete(id);
+  async delete(userId: string, id: string) {
+    return this.proceduresRepository.delete(userId, id);
   }
 }

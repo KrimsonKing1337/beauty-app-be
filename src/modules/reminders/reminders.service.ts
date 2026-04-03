@@ -1,9 +1,9 @@
 import {
-  getAllRemindersRepository,
-  getReminderByIdRepository,
-  createReminderRepository,
-  updateReminderRepository,
-  deleteReminderRepository,
+  getAllByUserId,
+  getReminderById,
+  createReminder,
+  updateReminder,
+  deleteReminder,
 } from './reminders.repository';
 
 import type {
@@ -12,20 +12,22 @@ import type {
   UpdateReminderInput,
 } from './reminders.types';
 
-export const getAllRemindersService = async (): Promise<Reminder[]> => {
-  return getAllRemindersRepository();
+export const getAllRemindersService = async (userId: string): Promise<Reminder[]> => {
+  return getAllByUserId(userId);
 };
 
 export const getReminderByIdService = async (
+  userId: string,
   id: string,
 ): Promise<Reminder | null> => {
-  return getReminderByIdRepository(id);
+  return getReminderById(userId, id);
 };
 
 export const createReminderService = async (
+  userId: string,
   input: CreateReminderInput,
 ): Promise<Reminder> => {
-  return createReminderRepository({
+  return createReminder(userId, {
     ...input,
     description: input.description ?? '',
     isCompleted: input.isCompleted ?? false,
@@ -33,10 +35,11 @@ export const createReminderService = async (
 };
 
 export const updateReminderService = async (
+  userId: string,
   id: string,
   input: UpdateReminderInput,
 ): Promise<Reminder | null> => {
-  const existingReminder = await getReminderByIdRepository(id);
+  const existingReminder = await getReminderById(userId, id);
 
   if (!existingReminder) {
     return null;
@@ -51,11 +54,12 @@ export const updateReminderService = async (
     isCompleted: input.isCompleted ?? existingReminder.isCompleted,
   };
 
-  return updateReminderRepository(id, mergedReminder);
+  return updateReminder(userId, id, mergedReminder);
 };
 
 export const deleteReminderService = async (
+  userId: string,
   id: string,
 ): Promise<boolean> => {
-  return deleteReminderRepository(id);
+  return deleteReminder(userId, id);
 };

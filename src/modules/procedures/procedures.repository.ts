@@ -1,172 +1,115 @@
 import { pool } from '@/db';
+
 import { mapProcedureToDto } from './procedures.mappers';
 
-import type {
-  CreateProcedureDto,
-  Procedure,
-  ProcedureEntity,
-  UpdateProcedureDto,
-} from './procedures.types';
+import type { CreateProcedureDto, UpdateProcedureDto } from './procedures.types';
 
 export class ProceduresRepository {
-  async findAll(): Promise<Procedure[]> {
-    const result = await pool.query<ProcedureEntity>(`
-      SELECT
-        id,
-        procedure_name,
-        date,
-        place,
-        duration,
-        price,
-        before_after,
-        notes,
-        created_at
-      FROM procedures
-      ORDER BY date DESC NULLS LAST, created_at DESC
-    `);
+  async findAllByUserId(userId: string) {
+    const result = await pool.query(
+      `
+          select *
+          from procedures
+          where user_id = $1
+          order by date desc
+      `,
+      [userId],
+    );
 
     return result.rows.map(mapProcedureToDto);
   }
 
-  async findById(id: string): Promise<Procedure | null> {
-    const result = await pool.query<ProcedureEntity>(
-      `
-        SELECT
-          id,
-          procedure_name,
-          date,
-          place,
-          duration,
-          price,
-          before_after,
-          notes,
-          created_at
-        FROM procedures
-        WHERE id = $1
-        LIMIT 1
-      `,
-      [id],
-    );
-
-    const entity = result.rows[0];
-
-    if (!entity) {
-      return null;
-    }
-
-    return mapProcedureToDto(entity);
-  }
-
-  async create(payload: CreateProcedureDto): Promise<Procedure> {
-    const result = await pool.query<ProcedureEntity>(
-      `
-        INSERT INTO procedures (
-          procedure_name,
-          date,
-          place,
-          duration,
-          price,
-          before_after,
-          notes
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING
-          id,
-          procedure_name,
-          date,
-          place,
-          duration,
-          price,
-          before_after,
-          notes,
-          created_at
-      `,
-      [
-        payload.procedureName,
-        payload.date,
-        payload.place,
-        payload.duration,
-        payload.price,
-        payload.beforeAfter,
-        payload.notes,
-      ],
-    );
-
-    return mapProcedureToDto(result.rows[0]);
-  }
-
-  async update(id: string, payload: UpdateProcedureDto): Promise<Procedure | null> {
-    const existing = await pool.query<ProcedureEntity>(
-      `
-        SELECT
-          id,
-          procedure_name,
-          date,
-          place,
-          duration,
-          price,
-          before_after,
-          notes,
-          created_at
-        FROM procedures
-        WHERE id = $1
-        LIMIT 1
-      `,
-      [id],
-    );
-
-    const current = existing.rows[0];
-
-    if (!current) {
-      return null;
-    }
-
-    const result = await pool.query<ProcedureEntity>(
-      `
-        UPDATE procedures
-        SET
-          updated_at = now(),
-          procedure_name = $2,
-          date = $3,
-          place = $4,
-          duration = $5,
-          price = $6,
-          before_after = $7,
-          notes = $8
-        WHERE id = $1
-        RETURNING
-          id,
-          procedure_name,
-          date,
-          place,
-          duration,
-          price,
-          before_after,
-          notes,
-          created_at
-      `,
-      [
-        id,
-        payload.procedureName ?? current.procedure_name,
-        payload.date ?? current.date,
-        payload.place ?? current.place,
-        payload.duration ?? current.duration,
-        payload.price ?? current.price,
-        payload.beforeAfter ?? current.before_after,
-        payload.notes ?? current.notes,
-      ],
-    );
-
-    return mapProcedureToDto(result.rows[0]);
-  }
-
-  async delete(id: string): Promise<boolean> {
+  async findById(userId: string, procedureId: string) {
     const result = await pool.query(
       `
-        DELETE FROM procedures
-        WHERE id = $1
+          select *
+          from procedures
+          where id = $1
+            and user_id = $2
+          limit 1
       `,
-      [id],
+      [procedureId, userId],
+    );
+
+    const row = result.rows[0];
+
+    return row ? mapProcedureToDto(row) : null;
+  }
+
+  async create(userId: string, data: CreateProcedureDto) {
+    const result = await pool.query(
+      `
+          insert into procedures (
+              user_id,
+              procedure_name,
+              date,
+              place,
+              duration,
+              price,
+              before_after,
+              notes
+          )
+          values ($1, $2, $3, $4, $5, $6, $7, $8)
+          returning *
+      `,
+      [
+        userId,
+        data.procedureName,
+        data.date,
+        data.place,
+        data.duration,
+        data.price,
+        data.beforeAfter,
+        data.notes,
+      ],
+    );
+
+    return mapProcedureToDto(result.rows[0]);
+  }
+
+  async update(userId: string, procedureId: string, data: UpdateProcedureDto) {
+    const result = await pool.query(
+      `
+          update procedures
+          set
+              procedure_name = $3,
+              date = $4,
+              place = $5,
+              duration = $6,
+              price = $7,
+              before_after = $8,
+              notes = $9,
+              updated_at = now()
+          where id = $1
+            and user_id = $2
+          returning *
+      `,
+      [
+        procedureId,
+        userId,
+        data.procedureName,
+        data.date,
+        data.place,
+        data.duration,
+        data.price,
+        data.beforeAfter,
+        data.notes,
+      ],
+    );
+
+    const row = result.rows[0];
+
+    return row ? mapProcedureToDto(row) : null;
+  }
+
+  async delete(userId: string, procedureId: string): Promise<boolean> {
+    const result = await pool.query(
+      `
+          delete from procedures
+          where id = $1
+            and user_id = $2
+      `,
+      [procedureId, userId],
     );
 
     return (result.rowCount ?? 0) > 0;

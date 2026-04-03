@@ -1,11 +1,9 @@
 import type { Request, Response } from 'express';
 
-import type { RequestWithUser } from '@/@types';
-
 import { authService } from './auth.service';
 
 export const authController = {
-  async login(req: RequestWithUser, res: Response) {
+  async login(req: Request, res: Response) {
     try {
       const { login, password } = req.body;
 
@@ -71,7 +69,7 @@ export const authController = {
     }
   },
 
-  async me(req: RequestWithUser, res: Response) {
+  async me(req: Request, res: Response) {
     if (!req.user) {
       return res.status(401).json({
         message: 'Unauthorized',

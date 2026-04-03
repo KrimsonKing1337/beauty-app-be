@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
 
-import { createProcedureSchema, updateProcedureSchema } from './procedures.schemas';
-import type { Procedure } from './procedures.types';
+import { updateProcedureSchema } from './procedures.schemas';
 import { ProceduresService } from './procedures.service';
 
 type ProcedureIdParams = {
@@ -11,16 +10,21 @@ type ProcedureIdParams = {
 export class ProceduresController {
   constructor(private readonly proceduresService: ProceduresService) {}
 
-  getAll = async (_req: Request, res: Response): Promise<void> => {
-    const items: Procedure[] = await this.proceduresService.getAll();
-    res.json(items);
+  getAll = async (req: Request, res: Response) => {
+    const userId = req.user!.userId;
+
+    const procedures = await this.proceduresService.getAll(userId);
+
+    return res.json(procedures);
   };
 
   getById = async (
     req: Request<ProcedureIdParams>,
     res: Response,
   ): Promise<void> => {
-    const item = await this.proceduresService.getById(req.params.id);
+    const userId = req.user!.userId;
+
+    const item = await this.proceduresService.getById(userId, req.params.id as string);
 
     if (!item) {
       res.status(404).json({ message: 'Процедура не найдена' });
@@ -30,19 +34,27 @@ export class ProceduresController {
     res.json(item);
   };
 
-  create = async (req: Request, res: Response): Promise<void> => {
-    const payload = createProcedureSchema.parse(req.body);
-    const item = await this.proceduresService.create(payload);
+  create = async (req: Request, res: Response) => {
+    const userId = req.user!.userId;
 
-    res.status(201).json(item);
+    const procedure = await this.proceduresService.create(userId, req.body);
+
+    return res.status(201).json(procedure);
   };
 
   update = async (
     req: Request<ProcedureIdParams>,
     res: Response,
   ): Promise<void> => {
+    const userId = req.user!.userId;
+
     const payload = updateProcedureSchema.parse(req.body);
-    const item = await this.proceduresService.update(req.params.id, payload);
+
+    const item = await this.proceduresService.update(
+      userId,
+      req.params.id as string,
+      payload,
+    );
 
     if (!item) {
       res.status(404).json({ message: 'Процедура не найдена' });
@@ -56,7 +68,9 @@ export class ProceduresController {
     req: Request<ProcedureIdParams>,
     res: Response,
   ): Promise<void> => {
-    const deleted = await this.proceduresService.delete(req.params.id);
+    const userId = req.user!.userId;
+
+    const deleted = await this.proceduresService.delete(userId, req.params.id as string);
 
     if (!deleted) {
       res.status(404).json({ message: 'Процедура не найдена' });
