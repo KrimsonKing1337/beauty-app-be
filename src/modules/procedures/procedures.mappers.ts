@@ -8,6 +8,8 @@ export const mapProcedureToDto = (row: ProcedureEntity): Procedure => ({
   duration: row.duration,
   price: row.price,
   beforeAfter: row.before_after,
+  beforeImagePaths: row.before_image_paths,
+  afterImagePaths: row.after_image_paths,
   notes: row.notes,
   createdAt: row.created_at,
   updatedAt: row.updated_at,

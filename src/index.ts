@@ -1,4 +1,3 @@
-import path from 'path';
 import express from 'express';
 import cors from 'cors';
 
@@ -24,7 +23,7 @@ app.use('/api/reminders', remindersRouter);
 app.use('/api/auth', authRoutes);
 app.use('/api/uploads', uploadsRouter);
 
-app.use(express.static(path.resolve('./uploads')));
+app.use('/uploads', express.static('uploads'));
 
 app.listen(env.port, async () => {
   console.log(`Server is running on port ${env.port}`);

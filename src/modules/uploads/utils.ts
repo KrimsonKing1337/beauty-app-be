@@ -17,19 +17,28 @@ export const checkIfExist = async (path: string) => {
 };
 
 export const createDirIfDoesNotExist = async (path: string) => {
-  try {
-    await fs.stat(path);
-  } catch (err) {
-    await fs.mkdir(path);
-  }
+  await fs.mkdir(path, { recursive: true });
+};
+
+export const getUploadPath = (req: Request) => {
+  const { login, userId } = req.user!;
+  const { procedureId, type } = req.params;
+
+  return `${uploadsOriginalPath}/${login}___${userId}/${procedureId}/${type}`;
+};
+
+export const getImagePath = async (uploadPath: string) => {
+  const files = await fs.readdir(uploadPath);
+
+  const image = files[0];
+
+  return `${uploadPath}/${image}`;
 };
 
 export const getUploadMiddleware = () => {
   const storage = multer.diskStorage({
     destination: async (req, _file, cb) => {
-      const { login, userId } = req.user!;
-
-      const uploadsPath = `${uploadsOriginalPath}/${login}___${userId}`;
+      const uploadsPath = getUploadPath(req);
 
       await createDirIfDoesNotExist(uploadsPath);
 
