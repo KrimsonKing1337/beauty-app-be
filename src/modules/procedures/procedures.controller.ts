@@ -1,7 +1,9 @@
+import fs from 'node:fs/promises';
 import type { Request, Response } from 'express';
 
 import { updateProcedureSchema } from './procedures.schemas';
 import { ProceduresService } from './procedures.service';
+import { uploadsOriginalPath, uploadsReadyPath } from '@/constants';
 
 type ProcedureIdParams = {
   id: string;
@@ -68,14 +70,20 @@ export class ProceduresController {
     req: Request<ProcedureIdParams>,
     res: Response,
   ): Promise<void> => {
+    const login = req.user!.login;
     const userId = req.user!.userId;
+    const procedureId = req.params.id as string;
 
-    const deleted = await this.proceduresService.delete(userId, req.params.id as string);
+    const deleted = await this.proceduresService.delete(userId, procedureId);
 
     if (!deleted) {
       res.status(404).json({ message: 'Процедура не найдена' });
+
       return;
     }
+
+    await fs.rm(`${uploadsOriginalPath}/${login}___${userId}/${procedureId}`, { force: true, recursive: true });
+    await fs.rm(`${uploadsReadyPath}/${login}___${userId}/${procedureId}`, { force: true, recursive: true });
 
     res.status(204).send();
   };
