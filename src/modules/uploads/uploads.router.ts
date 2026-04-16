@@ -38,7 +38,7 @@ uploadsRouter.post('/:procedureId/:type', getUploadMiddleware(), async (req, res
     outputPath,
   });
 
-  const updated = await proceduresRepository.addImage({
+  const updated = await proceduresRepository.updateImage({
     userId: req.user!.userId,
     procedureId,
     type,

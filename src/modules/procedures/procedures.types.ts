@@ -42,7 +42,7 @@ export type UpdateProcedureDto = Partial<CreateProcedureDto>;
 
 export type ImageType = 'before' | 'after';
 
-export type AddImageArgs = {
+export type UpdateImageArgs = {
   userId: string;
   procedureId: string;
   type: ImageType;

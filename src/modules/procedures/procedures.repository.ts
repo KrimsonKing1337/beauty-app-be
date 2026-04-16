@@ -2,7 +2,7 @@ import { pool } from '@/db';
 
 import { mapProcedureToDto } from './procedures.mappers';
 
-import { AddImageArgs, CreateProcedureDto, ImageType, UpdateProcedureDto } from './procedures.types';
+import { UpdateImageArgs, CreateProcedureDto, ImageType, UpdateProcedureDto } from './procedures.types';
 
 export class ProceduresRepository {
   async findAllByUserId(userId: string) {
@@ -115,7 +115,7 @@ export class ProceduresRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async addImage({ userId, procedureId, type, imagePath }: AddImageArgs) {
+  async updateImage({ userId, procedureId, type, imagePath }: UpdateImageArgs) {
     const column = type === 'before'
       ? 'before_image_paths'
       : 'after_image_paths';
@@ -123,13 +123,13 @@ export class ProceduresRepository {
     const result = await pool.query(
       `
         update procedures
-        set ${column} = array_append(${column}, $3),
+        set ${column} = $3,
             updated_at = now()
         where id = $1
           and user_id = $2
         returning *
       `,
-      [procedureId, userId, imagePath],
+      [procedureId, userId, [imagePath]],
     );
 
     const row = result.rows[0];
