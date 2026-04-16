@@ -1,8 +1,8 @@
 import express from 'express';
 import { authMiddleware } from '@/middlewares/authMiddleware';
 
-import { getUploadMiddleware } from './utils';
 import { ProceduresRepository } from '@/modules/procedures/procedures.repository';
+import { createDirIfDoesNotExist, getUploadMiddleware, processImage } from './utils';
 
 export const uploadsRouter = express.Router();
 
@@ -27,12 +27,22 @@ uploadsRouter.post('/:procedureId/:type', getUploadMiddleware(), async (req, res
   const image = files[0];
 
   const imagePath = `${image.destination}/${image.filename}`;
+  const outputPath = imagePath
+    .replace('original', 'ready')
+    .replace('.png', '.webp');
+
+  await createDirIfDoesNotExist(`${image.destination}`.replace('original', 'ready'));
+
+  await processImage({
+    inputPath: imagePath,
+    outputPath,
+  });
 
   const updated = await proceduresRepository.addImage({
     userId: req.user!.userId,
     procedureId,
     type,
-    imagePath,
+    imagePath: outputPath,
   });
 
   return res.json(updated);
