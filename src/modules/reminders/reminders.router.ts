@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { authMiddleware } from '@/middlewares/authMiddleware';
+import { asyncHandler } from '@/utils/asyncHandler';
 
 import {
   createReminderController,
@@ -14,8 +15,8 @@ export const remindersRouter = Router();
 
 remindersRouter.use(authMiddleware);
 
-remindersRouter.get('/', getRemindersController);
-remindersRouter.get('/:id', getReminderByIdController);
-remindersRouter.post('/', createReminderController);
-remindersRouter.patch('/:id', patchReminderController);
-remindersRouter.delete('/:id', deleteReminderController);
+remindersRouter.get('/', asyncHandler(getRemindersController));
+remindersRouter.get('/:id', asyncHandler(getReminderByIdController));
+remindersRouter.post('/', asyncHandler(createReminderController));
+remindersRouter.patch('/:id', asyncHandler(patchReminderController));
+remindersRouter.delete('/:id', asyncHandler(deleteReminderController));

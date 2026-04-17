@@ -1,19 +1,20 @@
 import type { Request, Response, NextFunction } from 'express';
 
 import { verifyAccessToken } from '@/modules/auth/utils/tokens';
+import { AppError } from '@/utils/appError';
 
 export const authMiddleware = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
   const BEARER = 'Bearer ';
 
   if (!authHeader?.startsWith(BEARER)) {
-    return res.status(401).json({
-      message: 'Unauthorized',
-    });
+    next(new AppError(401, 'Неавторизован'));
+
+    return;
   }
 
   const token = authHeader.slice(BEARER.length);
@@ -28,8 +29,8 @@ export const authMiddleware = (
 
     next();
   } catch {
-    return res.status(401).json({
-      message: 'Unauthorized',
-    });
+    next(new AppError(401, 'Неавторизован'));
+
+    return;
   }
 };

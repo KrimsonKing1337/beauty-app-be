@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 
 import { uploadsOriginalPath, uploadsReadyPath } from '@/constants';
+import { AppError } from '@/utils/appError';
 
 import {
   createProcedureSchema,
@@ -36,12 +37,7 @@ export const getProcedureByIdController = async (
   const paramsResult = procedureIdParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
-    res.status(400).json({
-      message: 'Invalid procedure id',
-      errors: z.treeifyError(paramsResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный id процедуры', z.treeifyError(paramsResult.error));
   }
 
   const userId = req.user!.userId;
@@ -49,8 +45,7 @@ export const getProcedureByIdController = async (
   const item = await getProcedure(userId, paramsResult.data.id);
 
   if (!item) {
-    res.status(404).json({ message: 'Процедура не найдена' });
-    return;
+    throw new AppError(404, 'Процедура не найдена');
   }
 
   res.json(item);
@@ -63,12 +58,7 @@ export const createProcedureController = async (
   const bodyResult = createProcedureSchema.safeParse(req.body);
 
   if (!bodyResult.success) {
-    res.status(400).json({
-      message: 'Invalid procedure payload',
-      errors: z.treeifyError(bodyResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный payload процедуры', z.treeifyError(bodyResult.error));
   }
 
   const userId = req.user!.userId;
@@ -85,23 +75,13 @@ export const patchProcedureController = async (
   const paramsResult = procedureIdParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
-    res.status(400).json({
-      message: 'Invalid procedure id',
-      errors: z.treeifyError(paramsResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный id процедуры', z.treeifyError(paramsResult.error));
   }
 
   const bodyResult = updateProcedureSchema.safeParse(req.body);
 
   if (!bodyResult.success) {
-    res.status(400).json({
-      message: 'Invalid procedure payload',
-      errors: z.treeifyError(bodyResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный payload процедуры', z.treeifyError(bodyResult.error));
   }
 
   const userId = req.user!.userId;
@@ -113,8 +93,7 @@ export const patchProcedureController = async (
   );
 
   if (!item) {
-    res.status(404).json({ message: 'Процедура не найдена' });
-    return;
+    throw new AppError(404, 'Процедура не найдена');
   }
 
   res.json(item);
@@ -127,12 +106,7 @@ export const deleteProcedureController = async (
   const paramsResult = procedureIdParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
-    res.status(400).json({
-      message: 'Invalid procedure id',
-      errors: z.treeifyError(paramsResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный id процедуры', z.treeifyError(paramsResult.error));
   }
 
   const login = req.user!.login;
@@ -142,8 +116,7 @@ export const deleteProcedureController = async (
   const deleted = await deleteProcedureService(userId, procedureId);
 
   if (!deleted) {
-    res.status(404).json({ message: 'Процедура не найдена' });
-    return;
+    throw new AppError(404, 'Процедура не найдена');
   }
 
   await fs.rm(`${uploadsOriginalPath}/${login}___${userId}/${procedureId}`, {

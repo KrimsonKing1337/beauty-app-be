@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 
 import { findUserByLogin } from '@/modules/users/users.repository';
+import { AppError } from '@/utils/appError';
 
 import {
   createRefreshToken,
@@ -20,13 +21,13 @@ export const loginUser = async (login: string, password: string) => {
   const user = await findUserByLogin(login);
 
   if (!user) {
-    throw new Error('INVALID_CREDENTIALS');
+    throw new AppError(401, 'Неверные данные');
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordValid) {
-    throw new Error('INVALID_CREDENTIALS');
+    throw new AppError(401, 'Неверный refresh token');
   }
 
   const payload = {

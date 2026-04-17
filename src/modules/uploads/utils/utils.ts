@@ -5,6 +5,7 @@ import multer from 'multer';
 import { nanoid } from 'nanoid';
 
 import { uploadsOriginalPath } from '@/constants';
+import { AppError } from '@/utils/appError';
 
 export const createDirIfDoesNotExist = async (targetPath: string) => {
   await fs.mkdir(targetPath, { recursive: true });
@@ -56,13 +57,13 @@ export const getUploadMiddleware = () => {
 
     middleware(req, res, (err) => {
       if (err instanceof multer.MulterError) {
-        res.status(500).send(err.message);
+        next(new AppError(400, err.message));
 
         return;
       }
 
       if (err) {
-        res.status(500).send((err as Error).message);
+        next(new AppError(400, (err as Error).message));
 
         return;
       }

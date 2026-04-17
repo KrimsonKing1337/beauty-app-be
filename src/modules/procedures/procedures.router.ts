@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { authMiddleware } from '@/middlewares/authMiddleware';
+import { asyncHandler } from '@/utils/asyncHandler';
 
 import {
   createProcedureController,
@@ -14,8 +15,8 @@ export const proceduresRouter = Router();
 
 proceduresRouter.use(authMiddleware);
 
-proceduresRouter.get('/', getProceduresController);
-proceduresRouter.get('/:id', getProcedureByIdController);
-proceduresRouter.post('/', createProcedureController);
-proceduresRouter.patch('/:id', patchProcedureController);
-proceduresRouter.delete('/:id', deleteProcedureController);
+proceduresRouter.get('/', asyncHandler(getProceduresController));
+proceduresRouter.get('/:id', asyncHandler(getProcedureByIdController));
+proceduresRouter.post('/', asyncHandler(createProcedureController));
+proceduresRouter.patch('/:id', asyncHandler(patchProcedureController));
+proceduresRouter.delete('/:id', asyncHandler(deleteProcedureController));

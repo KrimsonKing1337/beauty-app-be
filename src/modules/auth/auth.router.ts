@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { authMiddleware } from '@/middlewares/authMiddleware';
+import { asyncHandler } from '@/utils/asyncHandler';
 
 import {
   loginController,
@@ -11,7 +12,7 @@ import {
 
 export const authRouter = Router();
 
-authRouter.post('/login', loginController);
-authRouter.post('/refresh', refreshController);
-authRouter.post('/logout', logoutController);
-authRouter.get('/me', authMiddleware, meController);
+authRouter.post('/login', asyncHandler(loginController));
+authRouter.post('/refresh', asyncHandler(refreshController));
+authRouter.post('/logout', asyncHandler(logoutController));
+authRouter.get('/me', authMiddleware, asyncHandler(meController));

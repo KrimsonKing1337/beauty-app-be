@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { uploadImageParamsSchema } from './uploads.schemas';
 import { processUploadedProcedureImage } from './uploads.service';
+import { AppError } from '@/utils/appError';
 
 export const uploadProcedureImageController = async (
   req: Request,
@@ -11,16 +12,13 @@ export const uploadProcedureImageController = async (
   const paramsResult = uploadImageParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
-    return res.status(400).json({
-      message: 'Некорректные параметры загрузки',
-      errors: z.treeifyError(paramsResult.error),
-    });
+    throw new AppError(400, 'Некорректные параметры загрузки', z.treeifyError(paramsResult.error));
   }
 
   const files = req.files;
 
   if (!files || !Array.isArray(files) || files.length === 0) {
-    return res.status(400).json({ message: 'Файлы не загружены' });
+    throw new AppError(400, 'Файлы не загружены');
   }
 
   const image = files[0];
@@ -33,9 +31,7 @@ export const uploadProcedureImageController = async (
   });
 
   if (!updated) {
-    return res.status(404).json({
-      message: 'Процедура не найдена',
-    });
+    throw new AppError(404, 'Процедура не найдена');
   }
 
   return res.json(updated);

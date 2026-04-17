@@ -9,6 +9,8 @@ import { remindersRouter } from './modules/reminders/reminders.router';
 import { authRouter } from './modules/auth/auth.router';
 import { uploadsRouter } from './modules/uploads/uploads.router';
 
+import { errorMiddleware } from './middlewares/errorMiddleware';
+
 const app = express();
 
 app.use(cors());
@@ -24,6 +26,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/uploads', uploadsRouter);
 
 app.use('/uploads', express.static('uploads'));
+
+app.use(errorMiddleware);
 
 app.listen(env.port, async () => {
   console.log(`Server is running on port ${env.port}`);

@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 
+import { AppError } from '@/utils/appError';
+
 import {
   createReminderSchema,
   reminderIdParamsSchema,
@@ -33,12 +35,7 @@ export const getReminderByIdController = async (
   const paramsResult = reminderIdParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
-    res.status(400).json({
-      message: 'Invalid reminder id',
-      errors: z.treeifyError(paramsResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный id напоминания', z.treeifyError(paramsResult.error));
   }
 
   const userId = req.user!.userId;
@@ -46,8 +43,7 @@ export const getReminderByIdController = async (
   const reminder = await getReminderByIdService(userId, paramsResult.data.id);
 
   if (!reminder) {
-    res.status(404).json({ message: 'Reminder not found' });
-    return;
+    throw new AppError(404, 'Напоминание не найдено');
   }
 
   res.json(reminder);
@@ -60,12 +56,7 @@ export const createReminderController = async (
   const bodyResult = createReminderSchema.safeParse(req.body);
 
   if (!bodyResult.success) {
-    res.status(400).json({
-      message: 'Invalid reminder payload',
-      errors: z.treeifyError(bodyResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный payload напоминания', z.treeifyError(bodyResult.error));
   }
 
   const userId = req.user!.userId;
@@ -82,23 +73,13 @@ export const patchReminderController = async (
   const paramsResult = reminderIdParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
-    res.status(400).json({
-      message: 'Invalid reminder id',
-      errors: z.treeifyError(paramsResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный id напоминания', z.treeifyError(paramsResult.error));
   }
 
   const bodyResult = updateReminderSchema.safeParse(req.body);
 
   if (!bodyResult.success) {
-    res.status(400).json({
-      message: 'Invalid reminder payload',
-      errors: z.treeifyError(bodyResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный payload напоминания', z.treeifyError(bodyResult.error));
   }
 
   const userId = req.user!.userId;
@@ -110,8 +91,7 @@ export const patchReminderController = async (
   );
 
   if (!updatedReminder) {
-    res.status(404).json({ message: 'Reminder not found' });
-    return;
+    throw new AppError(404, 'Напоминание не найдено');
   }
 
   res.json(updatedReminder);
@@ -124,12 +104,7 @@ export const deleteReminderController = async (
   const paramsResult = reminderIdParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
-    res.status(400).json({
-      message: 'Invalid reminder id',
-      errors: z.treeifyError(paramsResult.error),
-    });
-
-    return;
+    throw new AppError(400, 'Неверный id напоминания', z.treeifyError(paramsResult.error));
   }
 
   const userId = req.user!.userId;
@@ -137,8 +112,7 @@ export const deleteReminderController = async (
   const isDeleted = await deleteReminderService(userId, paramsResult.data.id);
 
   if (!isDeleted) {
-    res.status(404).json({ message: 'Reminder not found' });
-    return;
+    throw new AppError(404, 'Напоминание не найдено');
   }
 
   res.status(204).send();
