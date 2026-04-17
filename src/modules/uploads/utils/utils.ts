@@ -5,14 +5,16 @@ import multer from 'multer';
 import { nanoid } from 'nanoid';
 
 import { uploadsOriginalPath } from '@/constants';
-import { AppError } from '@/utils/appError';
+
+import { AppError } from '@/utils/AppError';
+import { requireUser } from '@/utils/requireUser';
 
 export const createDirIfDoesNotExist = async (targetPath: string) => {
   await fs.mkdir(targetPath, { recursive: true });
 };
 
 export const getUploadPath = (req: Request) => {
-  const { login, userId } = req.user!;
+  const { login, userId } = requireUser(req);
   const { procedureId, type } = req.params;
 
   return `${uploadsOriginalPath}/${login}___${userId}/${procedureId}/${type}`;

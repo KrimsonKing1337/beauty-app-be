@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 
-import { AppError } from './appError';
+import { AppError } from './AppError';
 
 export const sendErrorResponse = (res: Response, error: unknown) => {
   if (error instanceof AppError) {

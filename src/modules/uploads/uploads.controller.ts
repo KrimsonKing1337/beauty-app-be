@@ -3,7 +3,9 @@ import { z } from 'zod';
 
 import { uploadImageParamsSchema } from './uploads.schemas';
 import { processUploadedProcedureImage } from './uploads.service';
-import { AppError } from '@/utils/appError';
+
+import { AppError } from '@/utils/AppError';
+import { requireUser } from '@/utils/requireUser';
 
 export const uploadProcedureImageController = async (
   req: Request,
@@ -23,8 +25,10 @@ export const uploadProcedureImageController = async (
 
   const image = files[0];
 
+   const { userId } = requireUser(req);
+
   const updated = await processUploadedProcedureImage({
-    userId: req.user!.userId,
+    userId,
     procedureId: paramsResult.data.procedureId,
     type: paramsResult.data.type,
     imagePath: `${image.destination}/${image.filename}`,

@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 
-import { AppError } from '@/utils/appError';
+import { AppError } from '@/utils/AppError';
+import { requireUser } from '@/utils/requireUser';
 
 import {
   createReminderSchema,
@@ -21,7 +22,7 @@ export const getRemindersController = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const reminders = await getAllRemindersService(userId);
 
@@ -38,7 +39,7 @@ export const getReminderByIdController = async (
     throw new AppError(400, 'Неверный id напоминания', z.treeifyError(paramsResult.error));
   }
 
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const reminder = await getReminderByIdService(userId, paramsResult.data.id);
 
@@ -59,7 +60,7 @@ export const createReminderController = async (
     throw new AppError(400, 'Неверный payload напоминания', z.treeifyError(bodyResult.error));
   }
 
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const reminder = await createReminderService(userId, bodyResult.data);
 
@@ -82,7 +83,7 @@ export const patchReminderController = async (
     throw new AppError(400, 'Неверный payload напоминания', z.treeifyError(bodyResult.error));
   }
 
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const updatedReminder = await updateReminderService(
     userId,
@@ -107,7 +108,7 @@ export const deleteReminderController = async (
     throw new AppError(400, 'Неверный id напоминания', z.treeifyError(paramsResult.error));
   }
 
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const isDeleted = await deleteReminderService(userId, paramsResult.data.id);
 

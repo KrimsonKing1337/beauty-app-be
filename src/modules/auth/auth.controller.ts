@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 
 import { findUserById } from '@/modules/users/users.repository';
-import { AppError } from '@/utils/appError';
+import { AppError } from '@/utils/AppError';
 
 import {
   loginUser,
@@ -47,7 +47,7 @@ export const logoutController = async (req: Request, res: Response) => {
 
 export const meController = async (req: Request, res: Response) => {
   if (!req.user) {
-    throw new AppError(401, 'Не авторизован');
+    throw new AppError(401, 'Неавторизован');
   }
 
   const user = await findUserById(req.user.userId);

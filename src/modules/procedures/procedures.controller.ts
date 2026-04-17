@@ -3,7 +3,9 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 
 import { uploadsOriginalPath, uploadsReadyPath } from '@/constants';
-import { AppError } from '@/utils/appError';
+
+import { AppError } from '@/utils/AppError';
+import { requireUser } from '@/utils/requireUser';
 
 import {
   createProcedureSchema,
@@ -23,7 +25,7 @@ export const getProceduresController = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const procedures = await getAllProcedures(userId);
 
@@ -40,7 +42,7 @@ export const getProcedureByIdController = async (
     throw new AppError(400, 'Неверный id процедуры', z.treeifyError(paramsResult.error));
   }
 
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const item = await getProcedure(userId, paramsResult.data.id);
 
@@ -61,7 +63,7 @@ export const createProcedureController = async (
     throw new AppError(400, 'Неверный payload процедуры', z.treeifyError(bodyResult.error));
   }
 
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const procedure = await createProcedureService(userId, bodyResult.data);
 
@@ -84,7 +86,7 @@ export const patchProcedureController = async (
     throw new AppError(400, 'Неверный payload процедуры', z.treeifyError(bodyResult.error));
   }
 
-  const userId = req.user!.userId;
+  const { userId } = requireUser(req);
 
   const item = await updateProcedureService(
     userId,
@@ -109,8 +111,8 @@ export const deleteProcedureController = async (
     throw new AppError(400, 'Неверный id процедуры', z.treeifyError(paramsResult.error));
   }
 
-  const login = req.user!.login;
-  const userId = req.user!.userId;
+  const { userId, login } = requireUser(req);
+
   const procedureId = paramsResult.data.id;
 
   const deleted = await deleteProcedureService(userId, procedureId);

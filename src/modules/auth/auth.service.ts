@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 
 import { findUserByLogin } from '@/modules/users/users.repository';
-import { AppError } from '@/utils/appError';
+import { AppError } from '@/utils/AppError';
 
 import {
   createRefreshToken,
