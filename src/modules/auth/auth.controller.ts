@@ -1,96 +1,99 @@
 import type { Request, Response } from 'express';
 
-import { authService } from './auth.service';
-import { usersRepository } from '@/modules/users/users.repository';
+import { findUserById } from '@/modules/users/users.repository';
 
-export const authController = {
-  async login(req: Request, res: Response) {
-    try {
-      const { login, password } = req.body;
+import {
+  loginUser,
+  logoutUser,
+  refreshAuthSession,
+} from './auth.service';
 
-      if (!login || !password) {
-        return res.status(400).json({
-          message: 'login and password are required',
-        });
-      }
+export const loginController = async (req: Request, res: Response) => {
+  try {
+    const { login, password } = req.body;
 
-      const result = await authService.login(login, password);
-
-      return res.json(result);
-    } catch (error) {
-      if (error instanceof Error && error.message === 'INVALID_CREDENTIALS') {
-        return res.status(401).json({
-          message: 'Invalid credentials',
-        });
-      }
-
-      return res.status(500).json({
-        message: 'Internal server error',
+    if (!login || !password) {
+      return res.status(400).json({
+        message: 'login and password are required',
       });
     }
-  },
 
-  async refresh(req: Request, res: Response) {
-    try {
-      const { refreshToken } = req.body;
+    const result = await loginUser(login, password);
 
-      if (!refreshToken) {
-        return res.status(400).json({
-          message: 'refreshToken is required',
-        });
-      }
-
-      const result = await authService.refresh(refreshToken);
-
-      return res.json(result);
-    } catch {
+    return res.json(result);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'INVALID_CREDENTIALS') {
       return res.status(401).json({
-        message: 'Invalid refresh token',
-      });
-    }
-  },
-
-  async logout(req: Request, res: Response) {
-    try {
-      const { refreshToken } = req.body;
-
-      if (!refreshToken) {
-        return res.status(400).json({
-          message: 'refreshToken is required',
-        });
-      }
-
-      await authService.logout(refreshToken);
-
-      return res.status(204).send();
-    } catch {
-      return res.status(500).json({
-        message: 'Internal server error',
-      });
-    }
-  },
-
-  async me(req: Request, res: Response) {
-    if (!req.user) {
-      return res.status(401).json({
-        message: 'Unauthorized',
+        message: 'Invalid credentials',
       });
     }
 
-    const user = await usersRepository.findById(req.user.userId);
-
-    if (!user) {
-      return res.status(401).json({
-        message: 'User not found',
-      });
-    }
-
-    return res.json({
-      user: {
-        id: user.id,
-        login: user.login,
-        name: user.name,
-      }
+    return res.status(500).json({
+      message: 'Internal server error',
     });
-  },
+  }
+};
+
+export const refreshController = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        message: 'refreshToken is required',
+      });
+    }
+
+    const result = await refreshAuthSession(refreshToken);
+
+    return res.json(result);
+  } catch {
+    return res.status(401).json({
+      message: 'Invalid refresh token',
+    });
+  }
+};
+
+export const logoutController = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        message: 'refreshToken is required',
+      });
+    }
+
+    await logoutUser(refreshToken);
+
+    return res.status(204).send();
+  } catch {
+    return res.status(500).json({
+      message: 'Internal server error',
+    });
+  }
+};
+
+export const meController = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({
+      message: 'Unauthorized',
+    });
+  }
+
+  const user = await findUserById(req.user.userId);
+
+  if (!user) {
+    return res.status(401).json({
+      message: 'User not found',
+    });
+  }
+
+  return res.json({
+    user: {
+      id: user.id,
+      login: user.login,
+      name: user.name,
+    },
+  });
 };

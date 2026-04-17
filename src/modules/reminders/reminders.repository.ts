@@ -1,6 +1,6 @@
 import { pool } from '@/db';
 
-import { mapReminderRowToEntity } from './reminders.mapper';
+import { mapReminderRowToEntity } from './reminders.mappers';
 
 import type {
   Reminder,
@@ -9,13 +9,15 @@ import type {
   UpdateReminderInput,
 } from './reminders.types';
 
-export const getAllByUserId = async (userId: string): Promise<Reminder[]> => {
+export const getAllRemindersByUserId = async (
+  userId: string,
+): Promise<Reminder[]> => {
   const result = await pool.query(
     `
-        select *
-        from reminders
-        where user_id = $1
-        order by date_time desc nulls last
+      select *
+      from reminders
+      where user_id = $1
+      order by date_time desc nulls last
     `,
     [userId],
   );
@@ -29,11 +31,11 @@ export const getReminderById = async (
 ): Promise<Reminder | null> => {
   const result = await pool.query(
     `
-        select *
-        from reminders
-        where id = $1
-          and user_id = $2
-        limit 1
+      select *
+      from reminders
+      where id = $1
+        and user_id = $2
+      limit 1
     `,
     [reminderId, userId],
   );
@@ -49,27 +51,27 @@ export const createReminder = async (
 ): Promise<Reminder> => {
   const result = await pool.query<ReminderRow>(
     `
-        INSERT INTO reminders (
-            user_id,
-            id,
-            name,
-            description,
-            date_time,
-            repeat,
-            notifications,
-            is_completed
-        )
-        VALUES (
-             $1,
-             gen_random_uuid(),
-             $2,
-             $3,
-             $4,
-             $5::jsonb,
-             $6::jsonb,
-             $7
-        )
-        RETURNING *
+      insert into reminders (
+        user_id,
+        id,
+        name,
+        description,
+        date_time,
+        repeat,
+        notifications,
+        is_completed
+      )
+      values (
+         $1,
+         gen_random_uuid(),
+         $2,
+         $3,
+         $4,
+         $5::jsonb,
+         $6::jsonb,
+         $7
+            )
+      returning *
     `,
     [
       userId,
@@ -92,17 +94,18 @@ export const updateReminder = async (
 ): Promise<Reminder | null> => {
   const result = await pool.query<ReminderRow>(
     `
-      UPDATE reminders
-      SET
+      update reminders
+      set
         name = $2,
         description = $3,
         date_time = $4,
         repeat = $5::jsonb,
         notifications = $6::jsonb,
         is_completed = $7,
-        updated_at = NOW()
-      WHERE id = $1 AND user_id = $8
-      RETURNING *
+        updated_at = now()
+      where id = $1
+        and user_id = $8
+      returning *
     `,
     [
       id,
@@ -127,8 +130,9 @@ export const deleteReminder = async (
 ): Promise<boolean> => {
   const result = await pool.query(
     `
-        DELETE FROM reminders
-        WHERE id = $1 AND user_id = $2
+      delete from reminders
+      where id = $1
+        and user_id = $2
     `,
     [id, userId],
   );

@@ -1,7 +1,12 @@
 import bcrypt from 'bcrypt';
 
-import { usersRepository } from '@/modules/users/users.repository';
-import { authRepository } from './auth.repository';
+import { findUserByLogin } from '@/modules/users/users.repository';
+
+import {
+  createRefreshToken,
+  findValidRefreshToken,
+  revokeRefreshToken,
+} from './auth.repository';
 
 import {
   getRefreshTokenExpiresAt,
@@ -11,78 +16,76 @@ import {
   verifyRefreshToken,
 } from './utils/tokens';
 
-export const authService = {
-  async login(login: string, password: string) {
-    const user = await usersRepository.findByLogin(login);
+export const loginUser = async (login: string, password: string) => {
+  const user = await findUserByLogin(login);
 
-    if (!user) {
-      throw new Error('INVALID_CREDENTIALS');
-    }
+  if (!user) {
+    throw new Error('INVALID_CREDENTIALS');
+  }
 
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
-    if (!isPasswordValid) {
-      throw new Error('INVALID_CREDENTIALS');
-    }
+  if (!isPasswordValid) {
+    throw new Error('INVALID_CREDENTIALS');
+  }
 
-    const payload = {
-      userId: user.id,
+  const payload = {
+    userId: user.id,
+    login: user.login,
+  };
+
+  const accessToken = signAccessToken(payload);
+  const refreshToken = signRefreshToken(payload);
+
+  await createRefreshToken({
+    userId: user.id,
+    tokenHash: hashToken(refreshToken),
+    expiresAt: getRefreshTokenExpiresAt(),
+  });
+
+  return {
+    accessToken,
+    refreshToken,
+    user: {
+      id: user.id,
       login: user.login,
-    };
+      name: user.name,
+    },
+  };
+};
 
-    const accessToken = signAccessToken(payload);
-    const refreshToken = signRefreshToken(payload);
+export const refreshAuthSession = async (refreshToken: string) => {
+  const payload = verifyRefreshToken(refreshToken);
+  const tokenHash = hashToken(refreshToken);
 
-    await authRepository.createRefreshToken({
-      userId: user.id,
-      tokenHash: hashToken(refreshToken),
-      expiresAt: getRefreshTokenExpiresAt(),
-    });
+  const storedToken = await findValidRefreshToken(tokenHash);
 
-    return {
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        login: user.login,
-        name: user.name,
-      },
-    };
-  },
+  if (!storedToken) {
+    throw new Error('INVALID_REFRESH_TOKEN');
+  }
 
-  async refresh(refreshToken: string) {
-    const payload = verifyRefreshToken(refreshToken);
-    const tokenHash = hashToken(refreshToken);
+  await revokeRefreshToken(tokenHash);
 
-    const storedToken = await authRepository.findValidRefreshToken(tokenHash);
+  const newPayload = {
+    userId: payload.userId,
+    login: payload.login,
+  };
 
-    if (!storedToken) {
-      throw new Error('INVALID_REFRESH_TOKEN');
-    }
+  const newAccessToken = signAccessToken(newPayload);
+  const newRefreshToken = signRefreshToken(newPayload);
 
-    await authRepository.revokeRefreshToken(tokenHash);
+  await createRefreshToken({
+    userId: payload.userId,
+    tokenHash: hashToken(newRefreshToken),
+    expiresAt: getRefreshTokenExpiresAt(),
+  });
 
-    const newPayload = {
-      userId: payload.userId,
-      login: payload.login,
-    };
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+  };
+};
 
-    const newAccessToken = signAccessToken(newPayload);
-    const newRefreshToken = signRefreshToken(newPayload);
-
-    await authRepository.createRefreshToken({
-      userId: payload.userId,
-      tokenHash: hashToken(newRefreshToken),
-      expiresAt: getRefreshTokenExpiresAt(),
-    });
-
-    return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    };
-  },
-
-  async logout(refreshToken: string) {
-    await authRepository.revokeRefreshToken(hashToken(refreshToken));
-  },
+export const logoutUser = async (refreshToken: string) => {
+  await revokeRefreshToken(hashToken(refreshToken));
 };

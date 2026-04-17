@@ -15,5 +15,10 @@ export const createProcedureSchema = z.object({
 
 export const updateProcedureSchema = createProcedureSchema.partial();
 
+export const procedureIdParamsSchema = z.object({
+  id: z.uuid(),
+});
+
 export type CreateProcedureInput = z.infer<typeof createProcedureSchema>;
 export type UpdateProcedureInput = z.infer<typeof updateProcedureSchema>;
+export type ProcedureIdParamsInput = z.infer<typeof procedureIdParamsSchema>;

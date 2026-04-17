@@ -6,18 +6,8 @@ import { nanoid } from 'nanoid';
 
 import { uploadsOriginalPath } from '@/constants';
 
-export const checkIfExist = async (path: string) => {
-  try {
-    await fs.stat(path);
-
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
-
-export const createDirIfDoesNotExist = async (path: string) => {
-  await fs.mkdir(path, { recursive: true });
+export const createDirIfDoesNotExist = async (targetPath: string) => {
+  await fs.mkdir(targetPath, { recursive: true });
 };
 
 export const getUploadPath = (req: Request) => {
@@ -27,39 +17,33 @@ export const getUploadPath = (req: Request) => {
   return `${uploadsOriginalPath}/${login}___${userId}/${procedureId}/${type}`;
 };
 
-export const getImagePath = async (uploadPath: string) => {
-  const files = await fs.readdir(uploadPath);
-
-  const image = files[0];
-
-  return `${uploadPath}/${image}`;
-};
-
 export const getUploadMiddleware = () => {
   const storage = multer.diskStorage({
     destination: async (req, _file, cb) => {
-      const uploadsPath = getUploadPath(req);
+      try {
+        const uploadPath = getUploadPath(req);
 
-      await createDirIfDoesNotExist(uploadsPath);
+        await createDirIfDoesNotExist(uploadPath);
 
-      cb(null, uploadsPath);
+        cb(null, uploadPath);
+      } catch (error) {
+        cb(error as Error, '');
+      }
     },
     filename: (_req, file, cb) => {
       const ext = path.extname(file.originalname);
       const uuid = nanoid();
 
-      const newName = `${uuid}${ext}`;
-
-      cb(null, newName);
+      cb(null, `${uuid}${ext}`);
     },
   });
 
   const upload = multer({
     storage,
     fileFilter: (_req, file, callback) => {
-      const ext = path.extname(file.originalname);
+      const ext = path.extname(file.originalname).toLowerCase();
 
-      if (ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
+      if (!['.png', '.jpg', '.jpeg', '.gif'].includes(ext)) {
         return callback(new Error('Only image files allowed'));
       }
 
@@ -67,21 +51,23 @@ export const getUploadMiddleware = () => {
     },
   });
 
-  return (req: Request, res: Response, next: NextFunction)=> {
-    const upl = upload.array('files');
+  return (req: Request, res: Response, next: NextFunction) => {
+    const middleware = upload.array('files');
 
-    upl(req, res, (err) => {
+    middleware(req, res, (err) => {
       if (err instanceof multer.MulterError) {
         res.status(500).send(err.message);
 
-        next(err);
-      } else if (err) {
-        res.status(500).send(err.message);
+        return;
+      }
 
-        next(err);
+      if (err) {
+        res.status(500).send((err as Error).message);
+
+        return;
       }
 
       next();
     });
-  }
+  };
 };

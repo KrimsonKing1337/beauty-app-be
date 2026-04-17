@@ -7,30 +7,30 @@ export type User = {
   name: string;
 };
 
-export const usersRepository = {
-  async findByLogin(login: string): Promise<User | null> {
-    const result = await pool.query(
-      `
+export const findUserByLogin = async (login: string): Promise<User | null> => {
+  const result = await pool.query(
+    `
       select id, login, password_hash as "passwordHash", name
       from users
       where login = $1
-      `,
-      [login],
-    );
+      limit 1
+    `,
+    [login],
+  );
 
-    return result.rows[0] ?? null;
-  },
+  return result.rows[0] ?? null;
+};
 
-  async findById(id: string): Promise<User | null> {
-    const result = await pool.query(
-      `
+export const findUserById = async (id: string): Promise<User | null> => {
+  const result = await pool.query(
+    `
       select id, login, password_hash as "passwordHash", name
       from users
       where id = $1
-      `,
-      [id],
-    );
+      limit 1
+    `,
+    [id],
+  );
 
-    return result.rows[0] ?? null;
-  },
+  return result.rows[0] ?? null;
 };

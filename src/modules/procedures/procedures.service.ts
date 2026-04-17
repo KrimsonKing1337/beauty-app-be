@@ -1,26 +1,39 @@
-import type { CreateProcedureDto, UpdateProcedureDto } from './procedures.types';
-import { ProceduresRepository } from './procedures.repository';
+import type {
+  CreateProcedureDto,
+  UpdateProcedureDto,
+} from './procedures.types';
 
-export class ProceduresService {
-  constructor(private readonly proceduresRepository: ProceduresRepository) {}
+import {
+  createProcedure,
+  deleteProcedure,
+  getAllProceduresByUserId,
+  getProcedureById,
+  updateProcedure,
+} from './procedures.repository';
 
-  async getAll(userId: string) {
-    return this.proceduresRepository.findAllByUserId(userId);
-  }
+export const getAllProcedures = async (userId: string) => {
+  return getAllProceduresByUserId(userId);
+};
 
-  async getById(userId: string, id: string) {
-    return this.proceduresRepository.findById(userId, id);
-  }
+export const getProcedure = async (userId: string, id: string) => {
+  return getProcedureById(userId, id);
+};
 
-  async create(userId: string, payload: CreateProcedureDto) {
-    return this.proceduresRepository.create(userId, payload);
-  }
+export const createProcedureService = async (
+  userId: string,
+  payload: CreateProcedureDto,
+) => {
+  return createProcedure(userId, payload);
+};
 
-  async update(userId: string, id: string, payload: UpdateProcedureDto) {
-    return this.proceduresRepository.update(userId, id, payload);
-  }
+export const updateProcedureService = async (
+  userId: string,
+  id: string,
+  payload: UpdateProcedureDto,
+) => {
+  return updateProcedure(userId, id, payload);
+};
 
-  async delete(userId: string, id: string) {
-    return this.proceduresRepository.delete(userId, id);
-  }
-}
+export const deleteProcedureService = async (userId: string, id: string) => {
+  return deleteProcedure(userId, id);
+};

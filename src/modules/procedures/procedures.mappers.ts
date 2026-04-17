@@ -1,4 +1,4 @@
-import { Procedure, ProcedureEntity } from './procedures.types';
+import type { Procedure, ProcedureEntity } from './procedures.types';
 
 export const mapProcedureToDto = (row: ProcedureEntity): Procedure => ({
   id: row.id,
@@ -8,9 +8,9 @@ export const mapProcedureToDto = (row: ProcedureEntity): Procedure => ({
   duration: row.duration,
   price: row.price,
   beforeAfter: row.before_after,
-  beforeImagePaths: row.before_image_paths,
-  afterImagePaths: row.after_image_paths,
+  beforeImagePaths: row.before_image_paths ?? [],
+  afterImagePaths: row.after_image_paths ?? [],
   notes: row.notes,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
+  createdAt: new Date(row.created_at).toISOString(),
+  updatedAt: new Date(row.updated_at).toISOString(),
 });

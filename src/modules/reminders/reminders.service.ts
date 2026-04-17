@@ -1,9 +1,9 @@
 import {
-  getAllByUserId,
-  getReminderById,
   createReminder,
-  updateReminder,
   deleteReminder,
+  getAllRemindersByUserId,
+  getReminderById,
+  updateReminder,
 } from './reminders.repository';
 
 import type {
@@ -12,8 +12,10 @@ import type {
   UpdateReminderInput,
 } from './reminders.types';
 
-export const getAllRemindersService = async (userId: string): Promise<Reminder[]> => {
-  return getAllByUserId(userId);
+export const getAllRemindersService = async (
+  userId: string,
+): Promise<Reminder[]> => {
+  return getAllRemindersByUserId(userId);
 };
 
 export const getReminderByIdService = async (

@@ -8,14 +8,14 @@ import {
 } from './reminders.schemas';
 
 import {
+  createReminderService,
+  deleteReminderService,
   getAllRemindersService,
   getReminderByIdService,
-  createReminderService,
   updateReminderService,
-  deleteReminderService,
 } from './reminders.service';
 
-export const getReminders = async (
+export const getRemindersController = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
@@ -47,7 +47,6 @@ export const getReminderByIdController = async (
 
   if (!reminder) {
     res.status(404).json({ message: 'Reminder not found' });
-
     return;
   }
 
@@ -76,7 +75,7 @@ export const createReminderController = async (
   res.status(201).json(reminder);
 };
 
-export const updateReminderController = async (
+export const patchReminderController = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
@@ -112,7 +111,6 @@ export const updateReminderController = async (
 
   if (!updatedReminder) {
     res.status(404).json({ message: 'Reminder not found' });
-
     return;
   }
 
@@ -140,7 +138,6 @@ export const deleteReminderController = async (
 
   if (!isDeleted) {
     res.status(404).json({ message: 'Reminder not found' });
-
     return;
   }
 
