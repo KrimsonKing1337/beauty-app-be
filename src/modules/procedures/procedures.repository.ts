@@ -1,8 +1,8 @@
 import { pool } from '@/db';
 
-import { mapProcedureToDto } from './procedures.mappers';
+import type { UpdateImageArgs, CreateProcedureDto, UpdateProcedureDto } from './procedures.types';
 
-import { UpdateImageArgs, CreateProcedureDto, ImageType, UpdateProcedureDto } from './procedures.types';
+import { mapProcedureToDto } from './procedures.mappers';
 
 export class ProceduresRepository {
   async findAllByUserId(userId: string) {

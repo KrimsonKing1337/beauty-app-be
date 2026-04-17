@@ -1,9 +1,11 @@
 import express from 'express';
+import fs from 'node:fs/promises';
+
 import { authMiddleware } from '@/middlewares/authMiddleware';
 
 import { ProceduresRepository } from '@/modules/procedures/procedures.repository';
+
 import { createDirIfDoesNotExist, getUploadMiddleware, processImage } from './utils';
-import fs from 'node:fs/promises';
 
 export const uploadsRouter = express.Router();
 
