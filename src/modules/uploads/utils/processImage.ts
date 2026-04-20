@@ -10,9 +10,9 @@ export const processImage = async ({ inputPath, outputPath }: ProcessImageArgs) 
   await sharp(inputPath)
     .rotate()
     .resize({
-      width: 1600,
-      height: 1600,
-      fit: 'cover',
+      width: 1920,
+      height: 1920,
+      fit: 'inside',
       withoutEnlargement: true,
     })
     .webp({ quality: 82 })
