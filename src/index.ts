@@ -1,3 +1,4 @@
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 
@@ -25,6 +26,7 @@ app.use('/api/reminders', remindersRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/uploads', uploadsRouter);
 
+app.use(express.static(path.resolve('../beauty-app-fe/dist')));
 app.use('/uploads', express.static('uploads'));
 
 app.use(errorMiddleware);
@@ -34,6 +36,7 @@ app.listen(env.port, async () => {
 
   try {
     await pool.query('SELECT NOW()');
+
     console.log('PostgreSQL connected successfully');
   } catch (error) {
     console.error('PostgreSQL connection failed:', error);
