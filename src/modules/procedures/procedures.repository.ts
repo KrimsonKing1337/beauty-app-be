@@ -50,9 +50,9 @@ export const createProcedure = async (
         procedure_name,
         date,
         place,
-        duration,
+        duration_hours,
+        duration_minutes,
         price,
-        before_after,
         notes
       )
       values ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -63,7 +63,8 @@ export const createProcedure = async (
       data.procedureName,
       data.date,
       data.place,
-      data.duration,
+      data.durationHours,
+      data.durationMinutes,
       data.price,
       data.beforeAfter,
       data.notes,
@@ -85,9 +86,9 @@ export const updateProcedure = async (
         procedure_name = $3,
         date = $4,
         place = $5,
-        duration = $6,
-        price = $7,
-        before_after = $8,
+        duration_hours = $6,
+        duration_minutes = $7,
+        price = $8,
         notes = $9,
         updated_at = now()
       where id = $1
@@ -100,7 +101,8 @@ export const updateProcedure = async (
       data.procedureName,
       data.date,
       data.place,
-      data.duration,
+      data.durationHours,
+      data.durationMinutes,
       data.price,
       data.beforeAfter,
       data.notes,
