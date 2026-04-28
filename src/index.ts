@@ -6,6 +6,7 @@ import { env } from './config/env';
 import { pool } from './db';
 
 import { proceduresRouter } from './modules/procedures/procedures.router';
+import { procedureTypesRouter } from './modules/procedureTypes/procedureTypes.router';
 import { remindersRouter } from './modules/reminders/reminders.router';
 import { authRouter } from './modules/auth/auth.router';
 import { uploadsRouter } from './modules/uploads/uploads.router';
@@ -22,6 +23,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/procedures', proceduresRouter);
+app.use('/api/procedure-types', procedureTypesRouter);
 app.use('/api/reminders', remindersRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/uploads', uploadsRouter);
