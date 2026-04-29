@@ -49,16 +49,20 @@ export const createTag = async (
   userId: string,
   input: CreateTagInput,
 ): Promise<Tag> => {
+  const normalizedName = input.name.trim().replace(/\s+/g, ' ');
+
   const result = await pool.query<TagRow>(
     `
-      insert into tags (
-        user_id,
-        name
-      )
-      values ($1, $2)
-      returning *
+        insert into tags (
+            user_id,
+            name
+        )
+        values ($1, $2)
+        on conflict (user_id, lower(name))
+            do update set name = excluded.name
+        returning *
     `,
-    [userId, input.name],
+    [userId, normalizedName],
   );
 
   return mapTagRowToEntity(result.rows[0]);

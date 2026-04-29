@@ -49,16 +49,20 @@ export const createProcedureType = async (
   userId: string,
   input: CreateProcedureTypeInput,
 ): Promise<ProcedureType> => {
+  const normalizedName = input.name.trim().replace(/\s+/g, ' ');
+
   const result = await pool.query<ProcedureTypeRow>(
     `
-      insert into procedure_types (
-        user_id,
-        name
-      )
-      values ($1, $2)
-      returning *
+        insert into procedure_types (
+            user_id,
+            name
+        )
+        values ($1, $2)
+        on conflict (user_id, lower(name))
+            do update set name = excluded.name
+        returning *
     `,
-    [userId, input.name],
+    [userId, normalizedName],
   );
 
   return mapProcedureTypeRowToEntity(result.rows[0]);
