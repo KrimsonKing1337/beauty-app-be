@@ -13,7 +13,8 @@ export const mapProcedureToDto = (row: ProcedureEntity): Procedure => {
     afterImagePaths: row.after_image_paths ?? [],
     notes: row.notes,
     typeId: row.type_id,
+    tagIds: row.tag_ids ?? [],
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: new Date(row.updated_at).toISOString(),
-  }
+  };
 };

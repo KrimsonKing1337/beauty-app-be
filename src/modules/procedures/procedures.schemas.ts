@@ -14,6 +14,7 @@ export const createProcedureSchema = z.object({
   afterImagePaths: z.array(z.string().trim()).default([]),
   notes: nullableString,
   typeId: nullableString,
+  tagIds: z.array(z.uuid()).default([]),
 });
 
 export const updateProcedureSchema = createProcedureSchema.partial();
