@@ -9,6 +9,7 @@ import { proceduresRouter } from './modules/procedures/procedures.router';
 import { procedureTypesRouter } from './modules/procedureTypes/procedureTypes.router';
 import { remindersRouter } from './modules/reminders/reminders.router';
 import { authRouter } from './modules/auth/auth.router';
+import { tagsRouter } from '@/modules/tags/tags.router';
 import { uploadsRouter } from './modules/uploads/uploads.router';
 
 import { errorMiddleware } from './middlewares/errorMiddleware';
@@ -26,6 +27,7 @@ app.use('/api/procedures', proceduresRouter);
 app.use('/api/procedure-types', procedureTypesRouter);
 app.use('/api/reminders', remindersRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/tags', tagsRouter);
 app.use('/api/uploads', uploadsRouter);
 
 app.use(express.static(path.resolve('../beauty-app-fe/dist')));
