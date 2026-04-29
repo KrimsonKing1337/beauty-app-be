@@ -66,7 +66,6 @@ export const createProcedure = async (
       data.durationHours,
       data.durationMinutes,
       data.price,
-      data.beforeAfter,
       data.notes,
     ],
   );
@@ -104,7 +103,6 @@ export const updateProcedure = async (
       data.durationHours,
       data.durationMinutes,
       data.price,
-      data.beforeAfter,
       data.notes,
     ],
   );
