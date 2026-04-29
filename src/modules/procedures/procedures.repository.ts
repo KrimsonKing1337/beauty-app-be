@@ -53,9 +53,10 @@ export const createProcedure = async (
         duration_hours,
         duration_minutes,
         price,
-        notes
+        notes,
+        type_id
       )
-      values ($1, $2, $3, $4, $5, $6, $7, $8)
+      values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       returning *
     `,
     [
@@ -67,6 +68,7 @@ export const createProcedure = async (
       data.durationMinutes,
       data.price,
       data.notes,
+      data.typeId,
     ],
   );
 
@@ -89,6 +91,7 @@ export const updateProcedure = async (
         duration_minutes = $7,
         price = $8,
         notes = $9,
+        type_id = $10,
         updated_at = now()
       where id = $1
         and user_id = $2
@@ -104,6 +107,7 @@ export const updateProcedure = async (
       data.durationMinutes,
       data.price,
       data.notes,
+      data.typeId,
     ],
   );
 

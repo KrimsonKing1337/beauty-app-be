@@ -9,6 +9,7 @@ export type Procedure = {
   beforeImagePaths: string[];
   afterImagePaths: string[];
   notes: string | null;
+  typeId: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -24,6 +25,7 @@ export type ProcedureEntity = {
   before_image_paths: string[];
   after_image_paths: string[];
   notes: string | null;
+  type_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -36,6 +38,7 @@ export type CreateProcedureDto = {
   durationMinutes: number | null;
   price: number | null;
   notes: string | null;
+  typeId: string | null;
 };
 
 export type UpdateProcedureDto = Partial<CreateProcedureDto>;

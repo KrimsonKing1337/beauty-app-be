@@ -7,10 +7,13 @@ export const createProcedureSchema = z.object({
   procedureName: z.string().trim().min(1, 'Название процедуры обязательно'),
   date: z.string(),
   place: nullableString,
-  duration: nullableString,
+  durationHours: nullableNumber,
+  durationMinutes: nullableNumber,
   price: nullableNumber,
-  beforeAfter: z.array(z.string().trim()).default([]),
+  beforeImagePaths: z.array(z.string().trim()).default([]),
+  afterImagePaths: z.array(z.string().trim()).default([]),
   notes: nullableString,
+  typeId: nullableString,
 });
 
 export const updateProcedureSchema = createProcedureSchema.partial();
