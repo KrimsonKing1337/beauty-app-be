@@ -21,6 +21,8 @@ export type ReminderRepeat = {
 };
 
 export type ReminderNotifications = {
+  daysBefore: number;
+  hoursBefore: number;
   minutesBefore: number;
 };
 
@@ -50,7 +52,7 @@ export type UpdateReminderInput = {
   description?: string;
   dateTime?: Date;
   repeat?: ReminderRepeat;
-  notifications?: ReminderNotifications;
+  notifications?: Partial<ReminderNotifications>;
   isCompleted?: boolean;
 };
 

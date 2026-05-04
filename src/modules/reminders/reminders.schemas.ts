@@ -26,8 +26,18 @@ export const reminderRepeatSchema = z.object({
   preset: repeatPresetSchema,
 });
 
+const beforeValueSchema = z.number().int().min(0).default(0);
+
 export const reminderNotificationsSchema = z.object({
-  minutesBefore: z.number().int().min(0),
+  daysBefore: beforeValueSchema,
+  hoursBefore: beforeValueSchema,
+  minutesBefore: beforeValueSchema,
+});
+
+const updateReminderNotificationsSchema = z.object({
+  daysBefore: z.number().int().min(0).optional(),
+  hoursBefore: z.number().int().min(0).optional(),
+  minutesBefore: z.number().int().min(0).optional(),
 });
 
 const dateFromUnknownSchema = z.coerce.date();
@@ -46,7 +56,7 @@ export const updateReminderSchema = z.object({
   description: z.string().max(5000).optional(),
   dateTime: dateFromUnknownSchema.optional(),
   repeat: reminderRepeatSchema.optional(),
-  notifications: reminderNotificationsSchema.optional(),
+  notifications: updateReminderNotificationsSchema.optional(),
   isCompleted: z.boolean().optional(),
 });
 

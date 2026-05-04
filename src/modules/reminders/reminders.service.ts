@@ -47,12 +47,15 @@ export const updateReminderService = async (
     return null;
   }
 
-  const mergedReminder: UpdateReminderInput = {
+  const mergedReminder = {
     name: input.name ?? existingReminder.name,
     description: input.description ?? existingReminder.description,
     dateTime: input.dateTime ?? existingReminder.dateTime,
     repeat: input.repeat ?? existingReminder.repeat,
-    notifications: input.notifications ?? existingReminder.notifications,
+    notifications: {
+      ...existingReminder.notifications,
+      ...(input.notifications ?? {}),
+    },
     isCompleted: input.isCompleted ?? existingReminder.isCompleted,
   };
 

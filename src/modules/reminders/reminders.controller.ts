@@ -76,7 +76,9 @@ export const createReminderController = async (
       reminderName: bodyResult.data.name,
       dateTime: bodyResult.data.dateTime,
       repeatUnit: bodyResult.data.repeat?.unit,
-      minutesBefore: bodyResult.data.notifications?.minutesBefore,
+      daysBefore: bodyResult.data.notifications.daysBefore,
+      hoursBefore: bodyResult.data.notifications.hoursBefore,
+      minutesBefore: bodyResult.data.notifications.minutesBefore,
     },
     'Creating reminder',
   );
