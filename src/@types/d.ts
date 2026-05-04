@@ -1,5 +1,7 @@
 import 'express';
 
+import type { Logger } from 'pino';
+
 declare global {
   namespace Express {
     interface Request {
@@ -7,6 +9,8 @@ declare global {
         userId: string;
         login: string;
       };
+
+      log: Logger;
     }
   }
 }

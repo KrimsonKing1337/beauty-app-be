@@ -3,11 +3,7 @@ import type { Request, Response } from 'express';
 import { findUserById } from '@/modules/users/users.repository';
 import { AppError } from '@/utils/AppError';
 
-import {
-  loginUser,
-  logoutUser,
-  refreshAuthSession,
-} from './auth.service';
+import { loginUser, logoutUser, refreshAuthSession } from './auth.service';
 
 export const loginController = async (req: Request, res: Response) => {
   const { login, password } = req.body;
@@ -17,6 +13,14 @@ export const loginController = async (req: Request, res: Response) => {
   }
 
   const result = await loginUser(login, password);
+
+  req.log.info(
+    {
+      userId: result.user.id,
+      login: result.user.login,
+    },
+    'User logged in',
+  );
 
   return res.json(result);
 };
@@ -30,6 +34,8 @@ export const refreshController = async (req: Request, res: Response) => {
 
   const result = await refreshAuthSession(refreshToken);
 
+  req.log.info('Auth session refreshed');
+
   return res.json(result);
 };
 
@@ -41,6 +47,8 @@ export const logoutController = async (req: Request, res: Response) => {
   }
 
   await logoutUser(refreshToken);
+
+  req.log.info('User logged out');
 
   return res.status(204).send();
 };

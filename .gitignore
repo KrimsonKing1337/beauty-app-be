@@ -16,3 +16,5 @@ yarn-error.log*
 
 uploads
 !src/modules/uploads
+
+logs

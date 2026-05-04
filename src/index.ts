@@ -1,20 +1,30 @@
 import path from 'path';
 import express from 'express';
 import cors from 'cors';
+import { pinoHttp } from 'pino-http';
 
 import { env } from './config/env';
 import { pool } from './db';
+
+import { pinoLogger } from './utils/pinoLogger';
+import { tagsRouter } from '@/modules/tags/tags.router';
 
 import { proceduresRouter } from './modules/procedures/procedures.router';
 import { procedureTypesRouter } from './modules/procedureTypes/procedureTypes.router';
 import { remindersRouter } from './modules/reminders/reminders.router';
 import { authRouter } from './modules/auth/auth.router';
-import { tagsRouter } from '@/modules/tags/tags.router';
 import { uploadsRouter } from './modules/uploads/uploads.router';
 
 import { errorMiddleware } from './middlewares/errorMiddleware';
 
 const app = express();
+
+app.use(
+  pinoHttp({
+    logger: pinoLogger,
+    genReqId: () => crypto.randomUUID(),
+  }),
+);
 
 app.use(cors());
 app.use(express.json());
@@ -36,13 +46,13 @@ app.use('/uploads', express.static('uploads'));
 app.use(errorMiddleware);
 
 app.listen(env.port, async () => {
-  console.log(`Server is running on port ${env.port}`);
+  pinoLogger.info({ port: env.port }, 'Server is running');
 
   try {
     await pool.query('SELECT NOW()');
 
-    console.log('PostgreSQL connected successfully');
+    pinoLogger.info('PostgreSQL connected successfully');
   } catch (error) {
-    console.error('PostgreSQL connection failed:', error);
+    pinoLogger.error({ err: error }, 'PostgreSQL connection failed');
   }
 });

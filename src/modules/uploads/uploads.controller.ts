@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 
-import { uploadImageParamsSchema } from './uploads.schemas';
-import { processUploadedProcedureImage } from './uploads.service';
-
 import { AppError } from '@/utils/AppError';
 import { requireUser } from '@/utils/requireUser';
+
+import { uploadImageParamsSchema } from './uploads.schemas';
+import { processUploadedProcedureImage } from './uploads.service';
 
 export const uploadProcedureImageController = async (
   req: Request,
@@ -14,7 +14,11 @@ export const uploadProcedureImageController = async (
   const paramsResult = uploadImageParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
-    throw new AppError(400, 'Некорректные параметры загрузки', z.treeifyError(paramsResult.error));
+    throw new AppError(
+      400,
+      'Некорректные параметры загрузки',
+      z.treeifyError(paramsResult.error),
+    );
   }
 
   const files = req.files;
@@ -25,7 +29,18 @@ export const uploadProcedureImageController = async (
 
   const image = files[0];
 
-   const { userId } = requireUser(req);
+  const { userId } = requireUser(req);
+
+  req.log.info(
+    {
+      userId,
+      procedureId: paramsResult.data.procedureId,
+      imageType: paramsResult.data.type,
+      fileSize: image.size,
+      mimetype: image.mimetype,
+    },
+    'Uploading procedure image',
+  );
 
   const updated = await processUploadedProcedureImage({
     userId,
@@ -37,6 +52,15 @@ export const uploadProcedureImageController = async (
   if (!updated) {
     throw new AppError(404, 'Процедура не найдена');
   }
+
+  req.log.info(
+    {
+      userId,
+      procedureId: paramsResult.data.procedureId,
+      imageType: paramsResult.data.type,
+    },
+    'Procedure image uploaded',
+  );
 
   return res.json(updated);
 };

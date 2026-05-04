@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 
 import { updateProcedureImage } from '@/modules/procedures/procedures.repository';
+import { pinoLogger } from '@/utils/pinoLogger';
 
 import { createDirIfDoesNotExist, processImage } from './utils';
 
@@ -25,6 +26,15 @@ export const processUploadedProcedureImage = async ({
     .slice(0, -1)
     .join('/');
 
+  pinoLogger.info(
+    {
+      userId,
+      procedureId,
+      imageType: type,
+    },
+    'Processing uploaded image',
+  );
+
   await fs.rm(imageReadyDir, { force: true, recursive: true });
   await createDirIfDoesNotExist(imageReadyDir);
 
@@ -35,10 +45,22 @@ export const processUploadedProcedureImage = async ({
 
   await fs.rm(imageOriginalDir, { force: true, recursive: true });
 
-  return updateProcedureImage({
+  const updatedProcedure = await updateProcedureImage({
     userId,
     procedureId,
     type,
     imagePath: outputPath,
   });
+
+  pinoLogger.info(
+    {
+      userId,
+      procedureId,
+      imageType: type,
+      isProcedureUpdated: Boolean(updatedProcedure),
+    },
+    'Uploaded image processed',
+  );
+
+  return updatedProcedure;
 };
