@@ -54,7 +54,7 @@ export const getAllProceduresByUserId = async (userId: string) => {
       ${PROCEDURES_SELECT}
       where p.user_id = $1
       group by p.id
-      order by p.date desc
+      order by p.date_time desc
     `,
     [userId],
   );

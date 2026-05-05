@@ -4,7 +4,7 @@ export const mapProcedureToDto = (row: ProcedureEntity): Procedure => {
   return {
     id: row.id,
     procedureName: row.procedure_name,
-    date: new Date(row.date).toISOString(),
+    dateTime: new Date(row.date_time).toISOString(),
     place: row.place,
     durationHours: row.duration_hours,
     durationMinutes: row.duration_minutes,

@@ -21,7 +21,7 @@ export const pinoLogger = pino({
       'body.accessToken',
       'body.refreshToken',
     ],
-    censor: '[REDACTED]',
+    censor: '[HIDDEN]',
   },
 
   transport: {
