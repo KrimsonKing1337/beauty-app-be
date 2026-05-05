@@ -33,6 +33,7 @@ export type Reminder = {
   dateTime: Date;
   repeat: ReminderRepeat;
   notifications: ReminderNotifications;
+  procedureId: string | null;
   isCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +45,7 @@ export type CreateReminderInput = {
   dateTime: Date;
   repeat: ReminderRepeat;
   notifications: ReminderNotifications;
+  procedureId?: string | null;
   isCompleted?: boolean;
 };
 
@@ -53,6 +55,7 @@ export type UpdateReminderInput = {
   dateTime?: Date;
   repeat?: ReminderRepeat;
   notifications?: Partial<ReminderNotifications>;
+  procedureId?: string | null;
   isCompleted?: boolean;
 };
 
@@ -63,6 +66,7 @@ export type ReminderRow = {
   date_time: Date | string;
   repeat: unknown;
   notifications: unknown;
+  procedure_id: string | null;
   is_completed: boolean;
   created_at: Date | string;
   updated_at: Date | string;

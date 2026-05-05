@@ -47,6 +47,7 @@ export const mapReminderRowToEntity = (row: ReminderRow): Reminder => ({
   dateTime: new Date(row.date_time),
   repeat: row.repeat as Reminder['repeat'],
   notifications: mapReminderNotifications(row.notifications),
+  procedureId: row.procedure_id,
   isCompleted: row.is_completed,
   createdAt: new Date(row.created_at),
   updatedAt: new Date(row.updated_at),

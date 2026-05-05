@@ -48,6 +48,7 @@ export const createReminderSchema = z.object({
   dateTime: dateFromUnknownSchema,
   repeat: reminderRepeatSchema,
   notifications: reminderNotificationsSchema,
+  procedureId: z.uuid().nullable().optional(),
   isCompleted: z.boolean().optional(),
 });
 
@@ -57,6 +58,7 @@ export const updateReminderSchema = z.object({
   dateTime: dateFromUnknownSchema.optional(),
   repeat: reminderRepeatSchema.optional(),
   notifications: updateReminderNotificationsSchema.optional(),
+  procedureId: z.uuid().nullable().optional(),
   isCompleted: z.boolean().optional(),
 });
 

@@ -79,6 +79,7 @@ export const createReminderController = async (
       daysBefore: bodyResult.data.notifications.daysBefore,
       hoursBefore: bodyResult.data.notifications.hoursBefore,
       minutesBefore: bodyResult.data.notifications.minutesBefore,
+      procedureId: bodyResult.data.procedureId ?? null,
     },
     'Creating reminder',
   );
@@ -89,6 +90,7 @@ export const createReminderController = async (
     {
       userId,
       reminderId: reminder.id,
+      procedureId: reminder.procedureId,
     },
     'Reminder created',
   );
@@ -128,6 +130,7 @@ export const patchReminderController = async (
       userId,
       reminderId,
       updatedFields: Object.keys(bodyResult.data),
+      procedureId: bodyResult.data.procedureId,
     },
     'Updating reminder',
   );
@@ -146,6 +149,7 @@ export const patchReminderController = async (
     {
       userId,
       reminderId,
+      procedureId: updatedReminder.procedureId,
     },
     'Reminder updated',
   );

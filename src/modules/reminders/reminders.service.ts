@@ -32,6 +32,7 @@ export const createReminderService = async (
   return createReminder(userId, {
     ...input,
     description: input.description ?? '',
+    procedureId: input.procedureId ?? null,
     isCompleted: input.isCompleted ?? false,
   });
 };
@@ -47,6 +48,10 @@ export const updateReminderService = async (
     return null;
   }
 
+  const procedureId = Object.prototype.hasOwnProperty.call(input, 'procedureId')
+    ? input.procedureId ?? null
+    : existingReminder.procedureId;
+
   const mergedReminder = {
     name: input.name ?? existingReminder.name,
     description: input.description ?? existingReminder.description,
@@ -56,6 +61,7 @@ export const updateReminderService = async (
       ...existingReminder.notifications,
       ...(input.notifications ?? {}),
     },
+    procedureId,
     isCompleted: input.isCompleted ?? existingReminder.isCompleted,
   };
 
