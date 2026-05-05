@@ -80,6 +80,7 @@ export const createProcedureController = async (
       procedureName: bodyResult.data.procedureName,
       typeId: bodyResult.data.typeId,
       tagIdsCount: bodyResult.data.tagIds?.length ?? 0,
+      dateTime: bodyResult.data.dateTime,
     },
     'Creating procedure',
   );

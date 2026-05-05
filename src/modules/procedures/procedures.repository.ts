@@ -93,7 +93,7 @@ export const createProcedure = async (
         insert into procedures (
           user_id,
           procedure_name,
-          date,
+          date_time,
           place,
           duration_hours,
           duration_minutes,
@@ -107,7 +107,7 @@ export const createProcedure = async (
       [
         userId,
         data.procedureName,
-        data.date,
+        data.dateTime,
         data.place,
         data.durationHours,
         data.durationMinutes,
@@ -159,7 +159,7 @@ export const updateProcedure = async (
         update procedures
         set
           procedure_name = $3,
-          date = $4,
+          date_time = $4,
           place = $5,
           duration_hours = $6,
           duration_minutes = $7,
@@ -175,7 +175,7 @@ export const updateProcedure = async (
         procedureId,
         userId,
         data.procedureName,
-        data.date,
+        data.dateTime,
         data.place,
         data.durationHours,
         data.durationMinutes,

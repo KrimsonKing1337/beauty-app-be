@@ -5,7 +5,7 @@ const nullableNumber = z.number().nullable();
 
 export const createProcedureSchema = z.object({
   procedureName: z.string().trim().min(1, 'Название процедуры обязательно'),
-  date: z.string(),
+  dateTime: z.string(),
   place: nullableString,
   durationHours: nullableNumber,
   durationMinutes: nullableNumber,
