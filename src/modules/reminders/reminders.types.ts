@@ -89,6 +89,8 @@ export type GetRemindersQuery = {
   isCompleted: boolean | null;
   procedureId: string | null;
   includeProcedureReminders: boolean;
+  dateFrom?: string;
+  dateTo?: string;
 };
 
 export type Pagination = {

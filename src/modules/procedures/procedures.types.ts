@@ -64,6 +64,8 @@ export type GetProceduresQuery = {
   search: string;
   typeId: string | null;
   tagIds: string[];
+  dateFrom?: string;
+  dateTo?: string;
 };
 
 export type Pagination = {

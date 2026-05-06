@@ -108,6 +108,8 @@ export const createReminderSchema = z.object({
   notifications: reminderNotificationsSchema,
   procedureId: z.uuid().nullable().optional(),
   isCompleted: z.boolean().optional(),
+  dateFrom: z.iso.datetime().optional(),
+  dateTo: z.iso.datetime().optional(),
 });
 
 export const updateReminderSchema = z.object({
@@ -118,6 +120,8 @@ export const updateReminderSchema = z.object({
   notifications: updateReminderNotificationsSchema.optional(),
   procedureId: z.uuid().nullable().optional(),
   isCompleted: z.boolean().optional(),
+  dateFrom: z.iso.datetime().optional(),
+  dateTo: z.iso.datetime().optional(),
 });
 
 export const reminderIdParamsSchema = z.object({

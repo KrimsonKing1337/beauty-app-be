@@ -69,6 +69,16 @@ const buildProceduresWhere = (
     `);
   }
 
+  if (query.dateFrom) {
+    values.push(query.dateFrom);
+    where.push(`p.date_time >= $${values.length}`);
+  }
+
+  if (query.dateTo) {
+    values.push(query.dateTo);
+    where.push(`p.date_time < $${values.length}`);
+  }
+
   return {
     values,
     whereSql: where.join(' and '),

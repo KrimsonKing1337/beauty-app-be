@@ -50,6 +50,16 @@ const buildRemindersWhere = (
     where.push('procedure_id is null');
   }
 
+  if (query.dateFrom) {
+    values.push(query.dateFrom);
+    where.push(`date_time >= $${values.length}`);
+  }
+
+  if (query.dateTo) {
+    values.push(query.dateTo);
+    where.push(`date_time < $${values.length}`);
+  }
+
   return {
     values,
     whereSql: where.join(' and '),

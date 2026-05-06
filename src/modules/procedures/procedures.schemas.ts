@@ -40,6 +40,8 @@ export const getProceduresQuerySchema = z.object({
   search: z.string().trim().default(''),
   typeId: nullableUuidFromQuerySchema.default(null),
   tagIds: queryStringArraySchema.default([]),
+  dateFrom: z.iso.datetime().optional(),
+  dateTo: z.iso.datetime().optional(),
 });
 
 export const createProcedureSchema = z.object({
@@ -54,6 +56,8 @@ export const createProcedureSchema = z.object({
   notes: nullableString,
   typeId: nullableString,
   tagIds: z.array(z.uuid()).default([]),
+  dateFrom: z.iso.datetime().optional(),
+  dateTo: z.iso.datetime().optional(),
 });
 
 export const updateProcedureSchema = createProcedureSchema.partial();
