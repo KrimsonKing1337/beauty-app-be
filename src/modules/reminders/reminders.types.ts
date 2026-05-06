@@ -71,3 +71,34 @@ export type ReminderRow = {
   created_at: Date | string;
   updated_at: Date | string;
 };
+
+export type ReminderSortBy =
+  | 'dateTime'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'name';
+
+export type SortOrder = 'asc' | 'desc';
+
+export type GetRemindersQuery = {
+  page: number;
+  limit: number;
+  sortBy: ReminderSortBy;
+  sortOrder: SortOrder;
+  search: string;
+  isCompleted: boolean | null;
+  procedureId: string | null;
+  includeProcedureReminders: boolean;
+};
+
+export type Pagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  pagination: Pagination;
+};

@@ -46,6 +46,38 @@ export type CreateProcedureDto = {
 
 export type UpdateProcedureDto = Partial<CreateProcedureDto>;
 
+export type ProcedureSortBy =
+  | 'dateTime'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'procedureName'
+  | 'price'
+  | 'duration';
+
+export type SortOrder = 'asc' | 'desc';
+
+export type GetProceduresQuery = {
+  page: number;
+  limit: number;
+  sortBy: ProcedureSortBy;
+  sortOrder: SortOrder;
+  search: string;
+  typeId: string | null;
+  tagIds: string[];
+};
+
+export type Pagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  pagination: Pagination;
+};
+
 export type ImageType = 'before' | 'after';
 
 export type UpdateImageArgs = {

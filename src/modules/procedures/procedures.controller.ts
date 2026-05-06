@@ -10,6 +10,7 @@ import { requireUser } from '@/utils/requireUser';
 
 import {
   createProcedureSchema,
+  getProceduresQuerySchema,
   procedureIdParamsSchema,
   updateProcedureSchema,
 } from './procedures.schemas';
@@ -26,9 +27,19 @@ export const getProceduresController = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
+  const queryResult = getProceduresQuerySchema.safeParse(req.query);
+
+  if (!queryResult.success) {
+    throw new AppError(
+      400,
+      'Неверные параметры списка процедур',
+      z.treeifyError(queryResult.error),
+    );
+  }
+
   const { userId } = requireUser(req);
 
-  const procedures = await getAllProcedures(userId);
+  const procedures = await getAllProcedures(userId, queryResult.data);
 
   res.json(procedures);
 };

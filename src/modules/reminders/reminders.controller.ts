@@ -6,6 +6,7 @@ import { requireUser } from '@/utils/requireUser';
 
 import {
   createReminderSchema,
+  getRemindersQuerySchema,
   reminderIdParamsSchema,
   updateReminderSchema,
 } from './reminders.schemas';
@@ -22,9 +23,19 @@ export const getRemindersController = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
+  const queryResult = getRemindersQuerySchema.safeParse(req.query);
+
+  if (!queryResult.success) {
+    throw new AppError(
+      400,
+      'Неверные параметры списка напоминаний',
+      z.treeifyError(queryResult.error),
+    );
+  }
+
   const { userId } = requireUser(req);
 
-  const reminders = await getAllRemindersService(userId);
+  const reminders = await getAllRemindersService(userId, queryResult.data);
 
   res.json(reminders);
 };

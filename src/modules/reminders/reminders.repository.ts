@@ -6,23 +6,101 @@ import type {
   Reminder,
   ReminderRow,
   CreateReminderInput,
+  GetRemindersQuery,
+  PaginatedResponse,
   UpdateReminderInput,
 } from './reminders.types';
 
+const reminderSortColumns: Record<GetRemindersQuery['sortBy'], string> = {
+  dateTime: 'date_time',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+  name: 'name',
+};
+
+const buildRemindersWhere = (
+  userId: string,
+  query: GetRemindersQuery,
+) => {
+  const values: unknown[] = [userId];
+  const where: string[] = ['user_id = $1'];
+
+  if (query.search) {
+    values.push(`%${query.search}%`);
+
+    where.push(`
+      (
+        name ilike $${values.length}
+        or description ilike $${values.length}
+      )
+    `);
+  }
+
+  if (query.isCompleted !== null) {
+    values.push(query.isCompleted);
+    where.push(`is_completed = $${values.length}`);
+  }
+
+  if (query.procedureId) {
+    values.push(query.procedureId);
+    where.push(`procedure_id = $${values.length}`);
+  }
+
+  if (!query.includeProcedureReminders) {
+    where.push('procedure_id is null');
+  }
+
+  return {
+    values,
+    whereSql: where.join(' and '),
+  };
+};
+
 export const getAllRemindersByUserId = async (
   userId: string,
-): Promise<Reminder[]> => {
-  const result = await pool.query(
+  query: GetRemindersQuery,
+): Promise<PaginatedResponse<Reminder>> => {
+  const { values, whereSql } = buildRemindersWhere(userId, query);
+
+  const countResult = await pool.query(
     `
-        select *
-        from reminders
-        where user_id = $1
-        order by date_time desc nulls last
+      select count(*)::int as total
+      from reminders
+      where ${whereSql}
     `,
-    [userId],
+    values,
   );
 
-  return result.rows.map(mapReminderRowToEntity);
+  const total = countResult.rows[0]?.total ?? 0;
+  const totalPages = Math.ceil(total / query.limit);
+  const offset = (query.page - 1) * query.limit;
+
+  const sortColumn = reminderSortColumns[query.sortBy];
+  const sortDirection = query.sortOrder === 'asc' ? 'asc' : 'desc';
+
+  const dataValues = [...values, query.limit, offset];
+
+  const result = await pool.query<ReminderRow>(
+    `
+      select *
+      from reminders
+      where ${whereSql}
+      order by ${sortColumn} ${sortDirection} nulls last, id desc
+      limit $${dataValues.length - 1}
+      offset $${dataValues.length}
+    `,
+    dataValues,
+  );
+
+  return {
+    items: result.rows.map(mapReminderRowToEntity),
+    pagination: {
+      page: query.page,
+      limit: query.limit,
+      total,
+      totalPages,
+    },
+  };
 };
 
 export const getReminderById = async (
@@ -63,16 +141,16 @@ export const createReminder = async (
             is_completed
         )
         values (
-                   $1,
-                   gen_random_uuid(),
-                   $2,
-                   $3,
-                   $4,
-                   $5::jsonb,
-                   $6::jsonb,
-                   $7,
-                   $8
-               )
+           $1,
+           gen_random_uuid(),
+           $2,
+           $3,
+           $4,
+           $5::jsonb,
+           $6::jsonb,
+           $7,
+           $8
+              )
         returning *
     `,
     [

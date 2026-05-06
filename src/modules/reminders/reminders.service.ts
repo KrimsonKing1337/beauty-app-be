@@ -9,13 +9,16 @@ import {
 import type {
   Reminder,
   CreateReminderInput,
+  GetRemindersQuery,
+  PaginatedResponse,
   UpdateReminderInput,
 } from './reminders.types';
 
 export const getAllRemindersService = async (
   userId: string,
-): Promise<Reminder[]> => {
-  return getAllRemindersByUserId(userId);
+  query: GetRemindersQuery,
+): Promise<PaginatedResponse<Reminder>> => {
+  return getAllRemindersByUserId(userId, query);
 };
 
 export const getReminderByIdService = async (

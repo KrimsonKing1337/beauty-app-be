@@ -1,5 +1,6 @@
 import type {
   CreateProcedureDto,
+  GetProceduresQuery,
   UpdateProcedureDto,
 } from './procedures.types';
 
@@ -11,8 +12,11 @@ import {
   updateProcedure,
 } from './procedures.repository';
 
-export const getAllProcedures = async (userId: string) => {
-  return getAllProceduresByUserId(userId);
+export const getAllProcedures = async (
+  userId: string,
+  query: GetProceduresQuery,
+) => {
+  return getAllProceduresByUserId(userId, query);
 };
 
 export const getProcedure = async (userId: string, id: string) => {

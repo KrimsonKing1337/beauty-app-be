@@ -2,6 +2,9 @@ import { pool } from '@/db';
 
 import type {
   CreateProcedureDto,
+  GetProceduresQuery,
+  PaginatedResponse,
+  Procedure,
   UpdateImageArgs,
   UpdateProcedureDto,
 } from './procedures.types';
@@ -9,57 +12,114 @@ import type {
 import { mapProcedureToDto } from './procedures.mappers';
 
 const PROCEDURES_SELECT = `
-  select
-    p.*,
-    coalesce(
-      array_agg(pt.tag_id) filter (where pt.tag_id is not null),
-      '{}'
-    ) as tag_ids
-  from procedures p
-  left join procedure_tags pt
-    on pt.procedure_id = p.id
+    select
+        p.*,
+        coalesce(
+          array_agg(pt.tag_id) filter (where pt.tag_id is not null),
+          '{}'
+        ) as tag_ids
+          from procedures p
+          left join procedure_tags pt
+          on pt.procedure_id = p.id
 `;
 
-const replaceProcedureTags = async (
-  procedureId: string,
-  tagIds: string[],
-) => {
-  await pool.query(
-    `
-      delete from procedure_tags
-      where procedure_id = $1
-    `,
-    [procedureId],
-  );
-
-  if (tagIds.length === 0) {
-    return;
-  }
-
-  await pool.query(
-    `
-      insert into procedure_tags (
-        procedure_id,
-        tag_id
-      )
-      select $1, unnest($2::uuid[])
-    `,
-    [procedureId, tagIds],
-  );
+const procedureSortColumns: Record<GetProceduresQuery['sortBy'], string> = {
+  dateTime: 'p.date_time',
+  createdAt: 'p.created_at',
+  updatedAt: 'p.updated_at',
+  procedureName: 'p.procedure_name',
+  price: 'p.price',
+  duration: '(coalesce(p.duration_hours, 0) * 60 + coalesce(p.duration_minutes, 0))',
 };
 
-export const getAllProceduresByUserId = async (userId: string) => {
+const buildProceduresWhere = (
+  userId: string,
+  query: GetProceduresQuery,
+) => {
+  const values: unknown[] = [userId];
+  const where: string[] = ['p.user_id = $1'];
+
+  if (query.search) {
+    values.push(`%${query.search}%`);
+
+    where.push(`
+      (
+        p.procedure_name ilike $${values.length}
+        or p.place ilike $${values.length}
+        or p.notes ilike $${values.length}
+      )
+    `);
+  }
+
+  if (query.typeId) {
+    values.push(query.typeId);
+    where.push(`p.type_id = $${values.length}`);
+  }
+
+  if (query.tagIds.length > 0) {
+    values.push(query.tagIds);
+
+    where.push(`
+      exists (
+        select 1
+        from procedure_tags filter_pt
+        where filter_pt.procedure_id = p.id
+          and filter_pt.tag_id = any($${values.length}::uuid[])
+      )
+    `);
+  }
+
+  return {
+    values,
+    whereSql: where.join(' and '),
+  };
+};
+
+export const getAllProceduresByUserId = async (
+  userId: string,
+  query: GetProceduresQuery,
+): Promise<PaginatedResponse<Procedure>> => {
+  const { values, whereSql } = buildProceduresWhere(userId, query);
+
+  const countResult = await pool.query(
+    `
+      select count(*)::int as total
+      from procedures p
+      where ${whereSql}
+    `,
+    values,
+  );
+
+  const total = countResult.rows[0]?.total ?? 0;
+  const totalPages = Math.ceil(total / query.limit);
+  const offset = (query.page - 1) * query.limit;
+
+  const sortColumn = procedureSortColumns[query.sortBy];
+  const sortDirection = query.sortOrder === 'asc' ? 'asc' : 'desc';
+
+  const dataValues = [...values, query.limit, offset];
+
   const result = await pool.query(
     `
       ${PROCEDURES_SELECT}
-      where p.user_id = $1
+      where ${whereSql}
       group by p.id
-      order by p.date_time desc
+      order by ${sortColumn} ${sortDirection} nulls last, p.id desc
+      limit $${dataValues.length - 1}
+      offset $${dataValues.length}
     `,
-    [userId],
+    dataValues,
   );
 
-  return result.rows.map(mapProcedureToDto);
+  return {
+    items: result.rows.map(mapProcedureToDto),
+    pagination: {
+      page: query.page,
+      limit: query.limit,
+      total,
+      totalPages,
+    },
+  };
 };
 
 export const getProcedureById = async (userId: string, procedureId: string) => {
@@ -90,19 +150,19 @@ export const createProcedure = async (
 
     const result = await client.query(
       `
-        insert into procedures (
-          user_id,
-          procedure_name,
-          date_time,
-          place,
-          duration_hours,
-          duration_minutes,
-          price,
-          notes,
-          type_id
-        )
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        returning *
+          insert into procedures (
+              user_id,
+              procedure_name,
+              date_time,
+              place,
+              duration_hours,
+              duration_minutes,
+              price,
+              notes,
+              type_id
+          )
+          values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          returning *
       `,
       [
         userId,
@@ -243,10 +303,10 @@ export const deleteProcedure = async (
 };
 
 export const updateProcedureImage = async ({
-   userId,
-   procedureId,
-   type,
-   imagePath,
+ userId,
+ procedureId,
+ type,
+ imagePath,
 }: UpdateImageArgs) => {
   const column = type === 'before'
     ? 'before_image_paths'

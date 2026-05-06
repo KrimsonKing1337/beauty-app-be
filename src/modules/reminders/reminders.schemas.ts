@@ -42,6 +42,64 @@ const updateReminderNotificationsSchema = z.object({
 
 const dateFromUnknownSchema = z.coerce.date();
 
+const nullableUuidFromQuerySchema = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  return value;
+}, z.uuid().nullable());
+
+const nullableBooleanFromQuerySchema = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  if (value === 'true') {
+    return true;
+  }
+
+  if (value === 'false') {
+    return false;
+  }
+
+  return value;
+}, z.boolean().nullable());
+
+const booleanFromQuerySchema = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') {
+    return true;
+  }
+
+  if (value === 'true') {
+    return true;
+  }
+
+  if (value === 'false') {
+    return false;
+  }
+
+  return value;
+}, z.boolean());
+
+export const getRemindersQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sortBy: z
+    .enum([
+      'dateTime',
+      'createdAt',
+      'updatedAt',
+      'name',
+    ])
+    .default('dateTime'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  search: z.string().trim().default(''),
+  isCompleted: nullableBooleanFromQuerySchema.default(null),
+  procedureId: nullableUuidFromQuerySchema.default(null),
+  includeProcedureReminders: booleanFromQuerySchema.default(true),
+});
+
 export const createReminderSchema = z.object({
   name: z.string().trim().min(1).max(255),
   description: z.string().max(5000).default(''),
@@ -66,6 +124,7 @@ export const reminderIdParamsSchema = z.object({
   id: z.uuid(),
 });
 
+export type GetRemindersQueryDto = z.infer<typeof getRemindersQuerySchema>;
 export type CreateReminderDto = z.infer<typeof createReminderSchema>;
 export type UpdateReminderDto = z.infer<typeof updateReminderSchema>;
 export type ReminderIdParamsDto = z.infer<typeof reminderIdParamsSchema>;
