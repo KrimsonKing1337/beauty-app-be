@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "start:forever": "forever start -c \"npm run dev\" ./",
-    "seed:demo": "tsx src/scripts/seed-demo-data.ts"
+    "seed-demo-data": "tsx src/scripts/seed-demo-data.ts",
+    "generate-user-sql": "tsx src/scripts/generate-user-sql.ts"
   },
   "repository": {
     "type": "git",
