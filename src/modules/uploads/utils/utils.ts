@@ -46,7 +46,7 @@ export const getUploadMiddleware = () => {
     fileFilter: (_req, file, callback) => {
       const ext = path.extname(file.originalname).toLowerCase();
 
-      if (!['.png', '.jpg', '.jpeg', '.gif'].includes(ext)) {
+      if (!['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)) {
         return callback(new Error('Only image files allowed'));
       }
 
