@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-
 import pino from 'pino';
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -27,11 +26,21 @@ export const pinoLogger = pino({
   transport: {
     targets: [
       {
-        target: 'pino/file',
-        options: {
-          destination: path.join(logsDir, 'app.log'),
-          mkdir: true,
-        },
+        target: isDev ? 'pino/file' : 'pino-roll',
+
+        options: isDev
+          ? {
+            destination: path.join(logsDir, 'app.log'),
+            mkdir: true,
+          }
+          : {
+            file: path.join(logsDir, 'app.log'),
+            size: '5m',
+            limit: {
+              count: 10,
+            },
+            mkdir: true,
+          },
       },
 
       ...(isDev
