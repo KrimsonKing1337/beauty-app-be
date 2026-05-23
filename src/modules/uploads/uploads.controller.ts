@@ -10,6 +10,7 @@ import {
 } from './uploads.schemas';
 
 import { processUploadedProcedureImage } from './uploads.service';
+import { getUploadPath } from '@/modules/uploads/utils';
 
 const normalizeLabels = (rawLabels: unknown, fallbackLabel: string): string[] => {
   if (Array.isArray(rawLabels)) {
@@ -79,8 +80,11 @@ export const uploadProcedureImageController = async (
     'Uploading procedure images',
   );
 
+  const uploadPath = getUploadPath(req);
+
   const updated = await processUploadedProcedureImage({
     userId,
+    uploadPath,
     procedureId: paramsResult.data.procedureId,
     images: files.map((file, index) => ({
       imagePath: `${file.destination}/${file.filename}`,

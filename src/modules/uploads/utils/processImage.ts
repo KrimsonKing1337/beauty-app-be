@@ -1,4 +1,3 @@
-import fs from 'node:fs/promises';
 import sharp from 'sharp';
 
 type ProcessImageArgs = {
@@ -6,7 +5,10 @@ type ProcessImageArgs = {
   outputPath: string;
 };
 
-export const processImage = async ({ inputPath, outputPath }: ProcessImageArgs) => {
+export const processImage = async ({
+  inputPath,
+  outputPath,
+}: ProcessImageArgs) => {
   await sharp(inputPath)
     .rotate()
     .resize({
@@ -17,6 +19,4 @@ export const processImage = async ({ inputPath, outputPath }: ProcessImageArgs) 
     })
     .webp({ quality: 82 })
     .toFile(outputPath);
-
-  await fs.unlink(inputPath);
 };

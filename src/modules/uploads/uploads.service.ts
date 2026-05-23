@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 
 import { addProcedureImages } from '@/modules/procedures/procedures.repository';
 import { pinoLogger } from '@/utils/pinoLogger';
@@ -7,28 +8,32 @@ import { pinoLogger } from '@/utils/pinoLogger';
 import { createDirIfDoesNotExist, processImage } from './utils';
 
 import type { ProcessUploadImageArgs } from './uploads.types';
+import { uploadsOriginalPath } from '@/constants';
+
+const getReadyImagePath = (originalImagePath: string) => {
+  const parsedPath = path.parse(originalImagePath.replace('original', 'ready'));
+
+  return path.join(parsedPath.dir, `${parsedPath.name}.webp`);
+};
 
 export const processUploadedProcedureImage = async ({
   userId,
+  uploadPath,
   procedureId,
   images,
 }: ProcessUploadImageArgs) => {
   const processedImages = [];
 
   for (const imageCur of images) {
-    const outputPath = imageCur.imagePath.replace('original', 'ready');
-
-    const imageReadyDir = imageCur.imagePath
-      .split('/')
-      .slice(0, -1)
-      .join('/')
-      .replace('original', 'ready');
+    const outputPath = getReadyImagePath(imageCur.imagePath);
+    const imageReadyDir = path.dirname(outputPath);
 
     pinoLogger.info(
       {
         userId,
         procedureId,
         imagePath: imageCur.imagePath,
+        outputPath,
       },
       'Processing uploaded image',
     );
@@ -47,6 +52,10 @@ export const processUploadedProcedureImage = async ({
       path: outputPath,
       label: imageCur.label,
     });
+  }
+
+  if (images.length > 0) {
+    await fs.rm(path.resolve(uploadPath), { force: true, recursive: true });
   }
 
   const updatedProcedure = await addProcedureImages({

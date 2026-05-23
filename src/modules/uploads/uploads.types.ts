@@ -5,6 +5,7 @@ export type UploadedImageInput = {
 
 export type ProcessUploadImageArgs = {
   userId: string;
+  uploadPath: string;
   procedureId: string;
   images: UploadedImageInput[];
 };
