@@ -1,15 +1,19 @@
 import { pool } from '@/db';
 
 import type {
+  AddProcedureImagesArgs,
+  AddProcedureImagesResult,
   CreateProcedureDto,
   GetProceduresQuery,
   PaginatedResponse,
   Procedure,
-  UpdateImageArgs,
+  ProcedureImage,
   UpdateProcedureDto,
 } from './procedures.types';
 
 import { mapProcedureToDto } from './procedures.mappers';
+
+const MAX_PROCEDURE_IMAGES = 10;
 
 const PROCEDURES_SELECT = `
     select
@@ -168,10 +172,11 @@ export const createProcedure = async (
               duration_hours,
               duration_minutes,
               price,
+              images,
               notes,
               type_id
           )
-          values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10)
           returning *
       `,
       [
@@ -182,6 +187,7 @@ export const createProcedure = async (
         data.durationHours,
         data.durationMinutes,
         data.price,
+        JSON.stringify(data.images),
         data.notes,
         data.typeId,
       ],
@@ -224,6 +230,14 @@ export const updateProcedure = async (
   try {
     await client.query('begin');
 
+    const currentProcedure = await getProcedureById(userId, procedureId);
+
+    if (!currentProcedure) {
+      await client.query('rollback');
+
+      return null;
+    }
+
     const result = await client.query(
       `
         update procedures
@@ -234,8 +248,9 @@ export const updateProcedure = async (
           duration_hours = $6,
           duration_minutes = $7,
           price = $8,
-          notes = $9,
-          type_id = $10,
+          images = $9::jsonb,
+          notes = $10,
+          type_id = $11,
           updated_at = now()
         where id = $1
           and user_id = $2
@@ -244,14 +259,15 @@ export const updateProcedure = async (
       [
         procedureId,
         userId,
-        data.procedureName,
-        data.dateTime,
-        data.place,
-        data.durationHours,
-        data.durationMinutes,
-        data.price,
-        data.notes,
-        data.typeId,
+        data.procedureName ?? currentProcedure.procedureName,
+        data.dateTime ?? currentProcedure.dateTime,
+        data.place ?? currentProcedure.place,
+        data.durationHours ?? currentProcedure.durationHours,
+        data.durationMinutes ?? currentProcedure.durationMinutes,
+        data.price ?? currentProcedure.price,
+        JSON.stringify(data.images ?? currentProcedure.images),
+        data.notes ?? currentProcedure.notes,
+        data.typeId ?? currentProcedure.typeId,
       ],
     );
 
@@ -263,25 +279,27 @@ export const updateProcedure = async (
       return null;
     }
 
-    await client.query(
-      `
-        delete from procedure_tags
-        where procedure_id = $1
-      `,
-      [procedureId],
-    );
-
-    if (data.tagIds && data.tagIds.length > 0) {
+    if (data.tagIds) {
       await client.query(
         `
-          insert into procedure_tags (
-            procedure_id,
-            tag_id
-          )
-          select $1, unnest($2::uuid[])
+          delete from procedure_tags
+          where procedure_id = $1
         `,
-        [procedureId, data.tagIds],
+        [procedureId],
       );
+
+      if (data.tagIds.length > 0) {
+        await client.query(
+          `
+            insert into procedure_tags (
+              procedure_id,
+              tag_id
+            )
+            select $1, unnest($2::uuid[])
+          `,
+          [procedureId, data.tagIds],
+        );
+      }
     }
 
     await client.query('commit');
@@ -312,29 +330,42 @@ export const deleteProcedure = async (
   return (result.rowCount ?? 0) > 0;
 };
 
-export const updateProcedureImage = async ({
- userId,
- procedureId,
- type,
- imagePath,
-}: UpdateImageArgs) => {
-  const column = type === 'before'
-    ? 'before_image_paths'
-    : 'after_image_paths';
+export const addProcedureImages = async ({
+   userId,
+   procedureId,
+   images,
+}: AddProcedureImagesArgs): Promise<AddProcedureImagesResult> => {
+  const currentProcedure = await getProcedureById(userId, procedureId);
+
+  if (!currentProcedure) {
+    return null;
+  }
+
+  const nextImages: ProcedureImage[] = [
+    ...currentProcedure.images,
+    ...images,
+  ];
+
+  if (nextImages.length > MAX_PROCEDURE_IMAGES) {
+    return {
+      error: 'MAX_IMAGES_EXCEEDED',
+      maxImages: MAX_PROCEDURE_IMAGES,
+    };
+  }
 
   const result = await pool.query(
     `
       update procedures
-      set ${column} = $3,
+      set images = $3::jsonb,
           updated_at = now()
       where id = $1
         and user_id = $2
       returning *
     `,
-    [procedureId, userId, [imagePath]],
+    [procedureId, userId, JSON.stringify(nextImages)],
   );
 
   const row = result.rows[0];
 
-  return row ? mapProcedureToDto(row) : null;
+  return row ? getProcedureById(userId, procedureId) : null;
 };

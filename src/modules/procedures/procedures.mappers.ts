@@ -1,4 +1,24 @@
-import type { Procedure, ProcedureEntity } from './procedures.types';
+import type {
+  Procedure,
+  ProcedureEntity,
+  ProcedureImage,
+} from './procedures.types';
+
+const normalizeImages = (images: ProcedureEntity['images']): ProcedureImage[] => {
+  if (!images) {
+    return [];
+  }
+
+  if (typeof images === 'string') {
+    try {
+      return JSON.parse(images) as ProcedureImage[];
+    } catch {
+      return [];
+    }
+  }
+
+  return images;
+};
 
 export const mapProcedureToDto = (row: ProcedureEntity): Procedure => {
   return {
@@ -9,8 +29,7 @@ export const mapProcedureToDto = (row: ProcedureEntity): Procedure => {
     durationHours: row.duration_hours,
     durationMinutes: row.duration_minutes,
     price: row.price,
-    beforeImagePaths: row.before_image_paths ?? [],
-    afterImagePaths: row.after_image_paths ?? [],
+    images: normalizeImages(row.images),
     notes: row.notes,
     typeId: row.type_id,
     tagIds: row.tag_ids ?? [],

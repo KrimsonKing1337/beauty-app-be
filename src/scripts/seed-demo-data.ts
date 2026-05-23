@@ -45,20 +45,19 @@ const seed = async () => {
   for (let i = 0; i < 300; i += 1) {
     await pool.query(
       `
-        insert into procedures (
-          id,
-          user_id,
-          procedure_name,
-          date_time,
-          place,
-          duration_hours,
-          duration_minutes,
-          price,
-          before_image_paths,
-          after_image_paths,
-          notes
-        )
-        values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+          insert into procedures (
+              id,
+              user_id,
+              procedure_name,
+              date_time,
+              place,
+              duration_hours,
+              duration_minutes,
+              price,
+              images,
+              notes
+          )
+          values ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10)
       `,
       [
         randomUUID(),
@@ -69,8 +68,7 @@ const seed = async () => {
         Math.floor(Math.random() * 3),
         randomItem([0, 15, 30, 45]),
         Math.floor(Math.random() * 8000) + 1000,
-        [],
-        [],
+        JSON.stringify([]),
         'Тестовая процедура',
       ],
     );
@@ -79,17 +77,17 @@ const seed = async () => {
   for (let i = 0; i < 300; i += 1) {
     await pool.query(
       `
-        insert into reminders (
-          id,
-          user_id,
-          name,
-          description,
-          date_time,
-          repeat,
-          notifications,
-          is_completed
-        )
-        values ($1,$2,$3,$4,$5,$6,$7,$8)
+          insert into reminders (
+              id,
+              user_id,
+              name,
+              description,
+              date_time,
+              repeat,
+              notifications,
+              is_completed
+          )
+          values ($1,$2,$3,$4,$5,$6,$7,$8)
       `,
       [
         randomUUID(),

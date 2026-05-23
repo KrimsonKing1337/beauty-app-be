@@ -3,6 +3,12 @@ import { z } from 'zod';
 const nullableString = z.string().trim().nullable();
 const nullableNumber = z.number().nullable();
 
+const procedureImageSchema = z.object({
+  id: z.uuid(),
+  path: z.string().trim().min(1),
+  label: z.string().trim().max(120).default(''),
+});
+
 const queryStringArraySchema = z.preprocess((value) => {
   if (value === undefined || value === null || value === '') {
     return [];
@@ -51,8 +57,7 @@ export const createProcedureSchema = z.object({
   durationHours: nullableNumber,
   durationMinutes: nullableNumber,
   price: nullableNumber,
-  beforeImagePaths: z.array(z.string().trim()).default([]),
-  afterImagePaths: z.array(z.string().trim()).default([]),
+  images: z.array(procedureImageSchema).max(10).default([]),
   notes: nullableString,
   typeId: nullableString,
   tagIds: z.array(z.uuid()).default([]),

@@ -1,6 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 
-import { updateProcedureImage } from '@/modules/procedures/procedures.repository';
+import { addProcedureImages } from '@/modules/procedures/procedures.repository';
 import { pinoLogger } from '@/utils/pinoLogger';
 
 import { createDirIfDoesNotExist, processImage } from './utils';
@@ -10,56 +11,58 @@ import type { ProcessUploadImageArgs } from './uploads.types';
 export const processUploadedProcedureImage = async ({
   userId,
   procedureId,
-  type,
-  imagePath,
+  images,
 }: ProcessUploadImageArgs) => {
-  const outputPath = imagePath.replace('original', 'ready');
+  const processedImages = [];
 
-  const imageReadyDir = imagePath
-    .split('/')
-    .slice(0, -1)
-    .join('/')
-    .replace('original', 'ready');
+  for (const imageCur of images) {
+    const outputPath = imageCur.imagePath.replace('original', 'ready');
 
-  const imageOriginalDir = imagePath
-    .split('/')
-    .slice(0, -1)
-    .join('/');
+    const imageReadyDir = imageCur.imagePath
+      .split('/')
+      .slice(0, -1)
+      .join('/')
+      .replace('original', 'ready');
 
-  pinoLogger.info(
-    {
-      userId,
-      procedureId,
-      imageType: type,
-    },
-    'Processing uploaded image',
-  );
+    pinoLogger.info(
+      {
+        userId,
+        procedureId,
+        imagePath: imageCur.imagePath,
+      },
+      'Processing uploaded image',
+    );
 
-  await fs.rm(imageReadyDir, { force: true, recursive: true });
-  await createDirIfDoesNotExist(imageReadyDir);
+    await createDirIfDoesNotExist(imageReadyDir);
 
-  await processImage({
-    inputPath: imagePath,
-    outputPath,
-  });
+    await processImage({
+      inputPath: imageCur.imagePath,
+      outputPath,
+    });
 
-  await fs.rm(imageOriginalDir, { force: true, recursive: true });
+    await fs.rm(imageCur.imagePath, { force: true });
 
-  const updatedProcedure = await updateProcedureImage({
+    processedImages.push({
+      id: randomUUID(),
+      path: outputPath,
+      label: imageCur.label,
+    });
+  }
+
+  const updatedProcedure = await addProcedureImages({
     userId,
     procedureId,
-    type,
-    imagePath: outputPath,
+    images: processedImages,
   });
 
   pinoLogger.info(
     {
       userId,
       procedureId,
-      imageType: type,
+      imagesCount: processedImages.length,
       isProcedureUpdated: Boolean(updatedProcedure),
     },
-    'Uploaded image processed',
+    'Uploaded images processed',
   );
 
   return updatedProcedure;

@@ -4,8 +4,34 @@ import { z } from 'zod';
 import { AppError } from '@/utils/AppError';
 import { requireUser } from '@/utils/requireUser';
 
-import { uploadImageParamsSchema } from './uploads.schemas';
+import {
+  uploadImageBodySchema,
+  uploadImageParamsSchema,
+} from './uploads.schemas';
+
 import { processUploadedProcedureImage } from './uploads.service';
+
+const normalizeLabels = (rawLabels: unknown, fallbackLabel: string): string[] => {
+  if (Array.isArray(rawLabels)) {
+    return rawLabels.map((label) => String(label));
+  }
+
+  if (typeof rawLabels !== 'string') {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(rawLabels);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map((label) => String(label));
+    }
+  } catch {
+    return [rawLabels];
+  }
+
+  return [fallbackLabel];
+};
 
 export const uploadProcedureImageController = async (
   req: Request,
@@ -21,45 +47,65 @@ export const uploadProcedureImageController = async (
     );
   }
 
+  const bodyResult = uploadImageBodySchema.safeParse(req.body);
+
+  if (!bodyResult.success) {
+    throw new AppError(
+      400,
+      'Некорректный payload загрузки',
+      z.treeifyError(bodyResult.error),
+    );
+  }
+
   const files = req.files;
 
   if (!files || !Array.isArray(files) || files.length === 0) {
     throw new AppError(400, 'Файлы не загружены');
   }
 
-  const image = files[0];
-
   const { userId } = requireUser(req);
+
+  const labels = normalizeLabels(
+    bodyResult.data.labels,
+    bodyResult.data.label ?? '',
+  );
 
   req.log.info(
     {
       userId,
       procedureId: paramsResult.data.procedureId,
-      imageType: paramsResult.data.type,
-      fileSize: image.size,
-      mimetype: image.mimetype,
+      filesCount: files.length,
     },
-    'Uploading procedure image',
+    'Uploading procedure images',
   );
 
   const updated = await processUploadedProcedureImage({
     userId,
     procedureId: paramsResult.data.procedureId,
-    type: paramsResult.data.type,
-    imagePath: `${image.destination}/${image.filename}`,
+    images: files.map((file, index) => ({
+      imagePath: `${file.destination}/${file.filename}`,
+      label: labels[index] ?? bodyResult.data.label ?? '',
+    })),
   });
 
   if (!updated) {
     throw new AppError(404, 'Процедура не найдена');
   }
 
+  if ('error' in updated && updated.error === 'MAX_IMAGES_EXCEEDED') {
+    throw new AppError(
+      400,
+      `К процедуре можно прикрепить не больше ${updated.maxImages} фотографий`,
+    );
+  }
+
   req.log.info(
     {
       userId,
       procedureId: paramsResult.data.procedureId,
-      imageType: paramsResult.data.type,
+      filesCount: files.length,
     },
-    'Procedure image uploaded',
+    'Procedure images uploaded',
   );
 
   return res.json(updated);

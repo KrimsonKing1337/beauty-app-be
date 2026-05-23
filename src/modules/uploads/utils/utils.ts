@@ -15,9 +15,9 @@ export const createDirIfDoesNotExist = async (targetPath: string) => {
 
 export const getUploadPath = (req: Request) => {
   const { login, userId } = requireUser(req);
-  const { procedureId, type } = req.params;
+  const { procedureId } = req.params;
 
-  return `${uploadsOriginalPath}/${login}___${userId}/${procedureId}/${type}`;
+  return `${uploadsOriginalPath}/${login}___${userId}/${procedureId}`;
 };
 
 export const getUploadMiddleware = () => {
@@ -43,6 +43,10 @@ export const getUploadMiddleware = () => {
 
   const upload = multer({
     storage,
+    limits: {
+      files: 10,
+      fileSize: 15 * 1024 * 1024,
+    },
     fileFilter: (_req, file, callback) => {
       if (!file.mimetype.startsWith('image/')) {
         return callback(new Error('Only image files allowed'));
@@ -53,7 +57,7 @@ export const getUploadMiddleware = () => {
   });
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const middleware = upload.array('files');
+    const middleware = upload.array('files', 10);
 
     middleware(req, res, (err) => {
       if (err instanceof multer.MulterError) {

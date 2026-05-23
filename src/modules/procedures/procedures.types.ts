@@ -1,3 +1,9 @@
+export type ProcedureImage = {
+  id: string;
+  path: string;
+  label: string;
+};
+
 export type Procedure = {
   id: string;
   procedureName: string;
@@ -6,8 +12,7 @@ export type Procedure = {
   durationHours: number | null;
   durationMinutes: number | null;
   price: number | null;
-  beforeImagePaths: string[];
-  afterImagePaths: string[];
+  images: ProcedureImage[];
   notes: string | null;
   typeId: string | null;
   tagIds: string[];
@@ -23,8 +28,7 @@ export type ProcedureEntity = {
   duration_hours: number | null;
   duration_minutes: number | null;
   price: number | null;
-  before_image_paths: string[];
-  after_image_paths: string[];
+  images: ProcedureImage[] | string | null;
   notes: string | null;
   type_id: string | null;
   tag_ids: string[] | null;
@@ -39,6 +43,7 @@ export type CreateProcedureDto = {
   durationHours: number | null;
   durationMinutes: number | null;
   price: number | null;
+  images: ProcedureImage[];
   notes: string | null;
   typeId: string | null;
   tagIds: string[];
@@ -80,11 +85,15 @@ export type PaginatedResponse<T> = {
   pagination: Pagination;
 };
 
-export type ImageType = 'before' | 'after';
-
-export type UpdateImageArgs = {
+export type AddProcedureImagesArgs = {
   userId: string;
   procedureId: string;
-  type: ImageType;
-  imagePath: string;
+  images: ProcedureImage[];
+};
+
+export type AddProcedureImagesResult = Procedure
+  | null
+  | {
+  error: 'MAX_IMAGES_EXCEEDED';
+  maxImages: number;
 };

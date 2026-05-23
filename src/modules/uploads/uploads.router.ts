@@ -11,7 +11,7 @@ export const uploadsRouter = Router();
 uploadsRouter.use(authMiddleware);
 
 uploadsRouter.post(
-  '/:procedureId/:type',
+  '/:procedureId',
   getUploadMiddleware(),
   asyncHandler(uploadProcedureImageController),
 );
