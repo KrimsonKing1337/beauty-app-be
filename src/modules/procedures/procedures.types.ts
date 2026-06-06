@@ -8,7 +8,7 @@ export type Procedure = {
   id: string;
   procedureName: string;
   dateTime: string;
-  place: string | null;
+  placeId: string | null;
   durationHours: number | null;
   durationMinutes: number | null;
   price: number | null;
@@ -24,7 +24,7 @@ export type ProcedureEntity = {
   id: string;
   procedure_name: string;
   date_time: string;
-  place: string | null;
+  place_id: string | null;
   duration_hours: number | null;
   duration_minutes: number | null;
   price: number | null;
@@ -39,7 +39,7 @@ export type ProcedureEntity = {
 export type CreateProcedureDto = {
   procedureName: string;
   dateTime: string;
-  place: string | null;
+  placeId: string | null;
   durationHours: number | null;
   durationMinutes: number | null;
   price: number | null;

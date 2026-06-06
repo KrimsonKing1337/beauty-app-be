@@ -25,7 +25,7 @@ export const mapProcedureToDto = (row: ProcedureEntity): Procedure => {
     id: row.id,
     procedureName: row.procedure_name,
     dateTime: new Date(row.date_time).toISOString(),
-    place: row.place,
+    placeId: row.place_id,
     durationHours: row.duration_hours,
     durationMinutes: row.duration_minutes,
     price: row.price,
