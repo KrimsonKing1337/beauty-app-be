@@ -9,6 +9,7 @@ import { env } from './config/env';
 import { pool } from './db';
 
 import { authRouter } from './modules/auth/auth.router';
+import { procedurePlacesRouter } from './modules/procedurePlaces/procedurePlaces.router';
 import { procedureTypesRouter } from './modules/procedureTypes/procedureTypes.router';
 import { proceduresRouter } from './modules/procedures/procedures.router';
 import { remindersRouter } from './modules/reminders/reminders.router';
@@ -52,6 +53,7 @@ app.use('/api/auth/login', authRateLimiter);
 app.use('/api/auth/refresh', refreshRateLimiter);
 
 app.use('/api/procedures', proceduresRouter);
+app.use('/api/procedure-places', procedurePlacesRouter);
 app.use('/api/procedure-types', procedureTypesRouter);
 app.use('/api/reminders', remindersRouter);
 app.use('/api/auth', authRouter);
