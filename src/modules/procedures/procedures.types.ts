@@ -1,3 +1,5 @@
+import type { Reminder, ReminderRow } from '@/modules/reminders/reminders.types';
+
 export type ProcedureImage = {
   id: string;
   path: string;
@@ -16,6 +18,7 @@ export type Procedure = {
   notes: string | null;
   typeId: string | null;
   tagIds: string[];
+  reminder: Reminder | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -32,6 +35,7 @@ export type ProcedureEntity = {
   notes: string | null;
   type_id: string | null;
   tag_ids: string[] | null;
+  reminder: ReminderRow | null;
   created_at: string;
   updated_at: string;
 };

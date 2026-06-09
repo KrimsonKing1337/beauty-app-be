@@ -1,3 +1,7 @@
+import { mapReminderRowToEntity } from '@/modules/reminders/reminders.mappers';
+
+import type { ReminderRow } from '@/modules/reminders/reminders.types';
+
 import type {
   Procedure,
   ProcedureEntity,
@@ -20,6 +24,16 @@ const normalizeImages = (images: ProcedureEntity['images']): ProcedureImage[] =>
   return images;
 };
 
+const normalizeReminder = (
+  reminder: ProcedureEntity['reminder'],
+): Procedure['reminder'] => {
+  if (!reminder || typeof reminder !== 'object') {
+    return null;
+  }
+
+  return mapReminderRowToEntity(reminder);
+};
+
 export const mapProcedureToDto = (row: ProcedureEntity): Procedure => {
   return {
     id: row.id,
@@ -33,6 +47,7 @@ export const mapProcedureToDto = (row: ProcedureEntity): Procedure => {
     notes: row.notes,
     typeId: row.type_id,
     tagIds: row.tag_ids ?? [],
+    reminder: normalizeReminder(row.reminder),
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: new Date(row.updated_at).toISOString(),
   };

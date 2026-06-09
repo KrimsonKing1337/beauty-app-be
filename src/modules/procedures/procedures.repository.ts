@@ -21,10 +21,31 @@ const PROCEDURES_SELECT = `
         coalesce(
           array_agg(pt.tag_id) filter (where pt.tag_id is not null),
           '{}'
-        ) as tag_ids
-          from procedures p
-          left join procedure_tags pt
-          on pt.procedure_id = p.id
+        ) as tag_ids,
+        r.reminder
+    from procedures p
+        left join procedure_tags pt
+        on pt.procedure_id = p.id
+        left join lateral (
+        select jsonb_build_object(
+         'id', reminder_cur.id,
+         'name', reminder_cur.name,
+         'description', reminder_cur.description,
+         'date_time', reminder_cur.date_time,
+         'repeat', reminder_cur.repeat,
+         'notifications', reminder_cur.notifications,
+         'procedure_id', reminder_cur.procedure_id,
+         'is_completed', reminder_cur.is_completed,
+         'created_at', reminder_cur.created_at,
+         'updated_at', reminder_cur.updated_at
+         ) as reminder
+        from reminders reminder_cur
+        where reminder_cur.user_id = p.user_id
+          and reminder_cur.procedure_id = p.id
+          and reminder_cur.is_completed = false
+        order by reminder_cur.date_time asc nulls last, reminder_cur.id desc
+        limit 1
+        ) r on true
 `;
 
 const procedureSortColumns: Record<GetProceduresQuery['sortBy'], string> = {
@@ -49,7 +70,6 @@ const buildProceduresWhere = (
     where.push(`
       (
         p.procedure_name ilike $${values.length}
-        or p.place ilike $${values.length}
         or p.notes ilike $${values.length}
       )
     `);
@@ -97,9 +117,9 @@ export const getAllProceduresByUserId = async (
 
   const countResult = await pool.query(
     `
-      select count(*)::int as total
-      from procedures p
-      where ${whereSql}
+        select count(*)::int as total
+        from procedures p
+        where ${whereSql}
     `,
     values,
   );
@@ -117,7 +137,7 @@ export const getAllProceduresByUserId = async (
     `
       ${PROCEDURES_SELECT}
       where ${whereSql}
-      group by p.id
+      group by p.id, r.reminder
       order by ${sortColumn} ${sortDirection} nulls last, p.id desc
       limit $${dataValues.length - 1}
       offset $${dataValues.length}
@@ -142,7 +162,7 @@ export const getProcedureById = async (userId: string, procedureId: string) => {
       ${PROCEDURES_SELECT}
       where p.id = $1
         and p.user_id = $2
-      group by p.id
+      group by p.id, r.reminder
       limit 1
     `,
     [procedureId, userId],
@@ -198,11 +218,11 @@ export const createProcedure = async (
     if (data.tagIds.length > 0) {
       await client.query(
         `
-          insert into procedure_tags (
-            procedure_id,
-            tag_id
-          )
-          select $1, unnest($2::uuid[])
+            insert into procedure_tags (
+                procedure_id,
+                tag_id
+            )
+            select $1, unnest($2::uuid[])
         `,
         [procedureId, data.tagIds],
       );
@@ -240,21 +260,21 @@ export const updateProcedure = async (
 
     const result = await client.query(
       `
-        update procedures
-        set
-          procedure_name = $3,
-          date_time = $4,
-          place_id = $5,
-          duration_hours = $6,
-          duration_minutes = $7,
-          price = $8,
-          images = $9::jsonb,
-          notes = $10,
-          type_id = $11,
-          updated_at = now()
-        where id = $1
-          and user_id = $2
-        returning *
+          update procedures
+          set
+              procedure_name = $3,
+              date_time = $4,
+              place_id = $5,
+              duration_hours = $6,
+              duration_minutes = $7,
+              price = $8,
+              images = $9::jsonb,
+              notes = $10,
+              type_id = $11,
+              updated_at = now()
+          where id = $1
+            and user_id = $2
+          returning *
       `,
       [
         procedureId,
@@ -282,8 +302,8 @@ export const updateProcedure = async (
     if (data.tagIds) {
       await client.query(
         `
-          delete from procedure_tags
-          where procedure_id = $1
+            delete from procedure_tags
+            where procedure_id = $1
         `,
         [procedureId],
       );
@@ -291,11 +311,11 @@ export const updateProcedure = async (
       if (data.tagIds.length > 0) {
         await client.query(
           `
-            insert into procedure_tags (
-              procedure_id,
-              tag_id
-            )
-            select $1, unnest($2::uuid[])
+              insert into procedure_tags (
+                  procedure_id,
+                  tag_id
+              )
+              select $1, unnest($2::uuid[])
           `,
           [procedureId, data.tagIds],
         );
@@ -320,9 +340,9 @@ export const deleteProcedure = async (
 ): Promise<boolean> => {
   const result = await pool.query(
     `
-      delete from procedures
-      where id = $1
-        and user_id = $2
+        delete from procedures
+        where id = $1
+          and user_id = $2
     `,
     [procedureId, userId],
   );
@@ -331,9 +351,9 @@ export const deleteProcedure = async (
 };
 
 export const addProcedureImages = async ({
-   userId,
-   procedureId,
-   images,
+  userId,
+  procedureId,
+  images,
 }: AddProcedureImagesArgs): Promise<AddProcedureImagesResult> => {
   const currentProcedure = await getProcedureById(userId, procedureId);
 
@@ -355,12 +375,12 @@ export const addProcedureImages = async ({
 
   const result = await pool.query(
     `
-      update procedures
-      set images = $3::jsonb,
-          updated_at = now()
-      where id = $1
-        and user_id = $2
-      returning *
+        update procedures
+        set images = $3::jsonb,
+            updated_at = now()
+        where id = $1
+          and user_id = $2
+        returning *
     `,
     [procedureId, userId, JSON.stringify(nextImages)],
   );
