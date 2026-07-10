@@ -1,6 +1,8 @@
 import type { CorsOptions } from 'cors';
 
 const allowedOrigins = new Set([
+  'http://beauty-appp.ru',
+  'https://beauty-appp.ru',
   'http://localhost',
   'https://localhost',
   'capacitor://localhost',
