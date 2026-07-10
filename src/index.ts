@@ -19,7 +19,7 @@ import { uploadsRouter } from './modules/uploads/uploads.router';
 import {
   apiRateLimiter,
   authRateLimiter,
-  // helmetMiddleware,
+  helmetMiddleware,
   refreshRateLimiter
 } from './middlewares/securityMiddleware';
 
@@ -40,7 +40,25 @@ app.use(
   }),
 );
 
-// app.use(helmetMiddleware);
+app.use(
+  '/uploads',
+  cors(corsOptions),
+  express.static('uploads', {
+    setHeaders(res) {
+      res.setHeader(
+        'Cross-Origin-Resource-Policy',
+        'cross-origin',
+      );
+
+      res.setHeader(
+        'Cache-Control',
+        'public, max-age=604800',
+      );
+    },
+  }),
+);
+
+app.use(helmetMiddleware);
 app.use(cors(corsOptions));
 app.use(express.json());
 
