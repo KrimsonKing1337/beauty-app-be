@@ -26,6 +26,7 @@ import {
 import { errorMiddleware } from './middlewares/errorMiddleware';
 
 import { pinoLogger } from './utils/pinoLogger';
+import { corsOptions } from './utils/cors';
 
 const app = express();
 
@@ -40,7 +41,7 @@ app.use(
 );
 
 app.use(helmetMiddleware);
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
