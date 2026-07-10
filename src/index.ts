@@ -19,7 +19,7 @@ import { uploadsRouter } from './modules/uploads/uploads.router';
 import {
   apiRateLimiter,
   authRateLimiter,
-  helmetMiddleware,
+  // helmetMiddleware,
   refreshRateLimiter
 } from './middlewares/securityMiddleware';
 
@@ -40,7 +40,7 @@ app.use(
   }),
 );
 
-app.use(helmetMiddleware);
+// app.use(helmetMiddleware);
 app.use(cors(corsOptions));
 app.use(express.json());
 
