@@ -53,7 +53,7 @@ export const getProceduresQuerySchema = z.object({
 export const createProcedureSchema = z.object({
   procedureName: z.string().trim().min(1, 'Название процедуры обязательно'),
   dateTime: z.string(),
-  place: nullableString,
+  placeId: nullableString,
   durationHours: nullableNumber,
   durationMinutes: nullableNumber,
   price: nullableNumber,
